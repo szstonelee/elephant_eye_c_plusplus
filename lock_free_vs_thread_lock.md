@@ -1,6 +1,6 @@
 Is lock-free algorithm faster than thread lock algorithm? 
 
-Maybe Not.
+Maybe not.
 
 **Even single thread without any lock may out-perfrom lock-free algorithm with 100-CPU-core super machine.**
 
@@ -27,7 +27,7 @@ We need to know some basic numbers:
 
 So, if we use mutex and have no race, for lock acquiring, it is the same in cost if comparing to one CAS. But after that, it is totally differnet. Lock-free algorithms keep using CAS for each step. But when code enter [critcal section](https://en.wikipedia.org/wiki/Critical_section), it can use L1 cache or even register.
 
-**Critical section is cache-friendly, like single thread performance**
+**Critical section is cache-friendly, similiar to single thread performance.**
 
 The tremendous cost of latency is for mutex with race because blocking threads need to sleep and wake-up-again by OS scheduler. Why? it is all about cache. When thread context switch, we lose a lot of cache like L1 ~ L3 cache and [TLB](https://en.wikipedia.org/wiki/Translation_lookaside_buffer) buffer.   
 
@@ -56,14 +56,14 @@ For CAS,
 
 # Test results
 
-We set one million times and compare mutex with cas, in two compilation options, -O0 and -O2.
+We set one million times and compare mutex with CAS, in two compilation options, -O0 and -O2.
 ```
 g++ -std=c++17 -O0 cas_vs_mutex.cc
 g++ -std=c++17 -O2 cas_vs_mutex.cc
 ```
 
 In my MAC, the result is 
-| compile option | mutex | CAS | ratio | 
+| compile option | mutex(ns) | CAS(ns) | ratio | 
 | -- | -- | -- | -- |
 | O0 | 2071273 | 42319216 | 20 |
 | O2 | 1994 | 17901105 | 8977 |
@@ -96,7 +96,7 @@ If we want to use multi core:
 
 For Redis, Antirez, the founder of Redis, suggests to use multi process of Redis.
 
-For skip list, maybe we can use tens threads for each CPU core, and split skip list to multi segments. If each thread does not visit the segment of skip list in other thread, there is no data race. We can use lock freely and achieve benefits for cache and compiler optimization.
+For skip list, maybe we can use tens threads for each CPU core, and split skip list to multi segments. If each thread does not visit the segment of skip list in other thread, there is no data race. We can use lock freely and achieve benefits from cache and compiler optimization.
 
 The additional benefit for no-using lock-free algorithm is transaction. We can lock the data structure, do subtraction to account A with addition to accoutn B. For lock-free algorithm, transaciton is not easy even not possible.   
 
