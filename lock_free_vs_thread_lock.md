@@ -25,7 +25,7 @@ We need to know some basic numbers:
 7. For mutex, if no race, i.e. we use [futex](https://en.wikipedia.org/wiki/Futex), latency is around 20 nano second. You can guess, futex is based on atomic primitive.
 8. For mutex, if race, i.e., [thread context switch](https://en.wikipedia.org/wiki/Context_switch) happens, avarage latency is a couple of micro second.
 
-So, if we use mutex and have no race, for lock acquiring, it is the same in cost if comparing to one CAS. But after that, it is totally differnet. Lock-free algorithms keep using CAS for each step. But when code enter [critcal section](https://en.wikipedia.org/wiki/Critical_section), it can use L1 cache or even register.
+So, if we use mutex and have no race, for lock acquiring, it is the same in cost if comparing to one CAS. But after that, it is totally differnet. Lock-free algorithms keep using CAS for each step. But when code enter [critcal section](https://en.wikipedia.org/wiki/Critical_section), it can use L1 cache or even CPU register.
 
 **Critical section is cache-friendly, similiar to single thread performance.**
 
@@ -58,15 +58,15 @@ For CAS,
 
 # Test results
 
-We set one million times and compare mutex with CAS, in two compilation options, -O0 and -O2.
+We set one million loop times and compare mutex with CAS, in two compilation options, -O0 and -O2.
 ```
 g++ -std=c++17 -O0 cas_vs_mutex.cc
 g++ -std=c++17 -O2 cas_vs_mutex.cc
 ```
 
-In my MAC, the result is 
+In my MAC, the result is as follow:
 | compile option | mutex(ns) | CAS(ns) | ratio | 
-| -- | -- | -- | -- |
+| *--* | -- | -- | -- |
 | O0 | 2071273 | 42319216 | 20 |
 | O2 | 1994 | 17901105 | 8977 |
 
