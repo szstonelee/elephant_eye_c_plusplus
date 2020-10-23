@@ -29,7 +29,9 @@ So, if we use mutex and have no race, for lock acquiring, it is the same in cost
 
 **Critical section is cache-friendly, similiar to single thread performance.**
 
-The tremendous cost of latency is for mutex with race because blocking threads need to sleep and wake-up-again by OS scheduler. Why? it is all about cache. When thread context switch, we lose a lot of cache like L1 ~ L3 cache and [TLB](https://en.wikipedia.org/wiki/Translation_lookaside_buffer) buffer.   
+The tremendous cost of latency is for mutex with race because blocking threads need to sleep and wake-up-again by OS scheduler. Why? it is all about cache. When thread context switch, we lose a lot of cache like L1 ~ L3 cache and [TLB](https://en.wikipedia.org/wiki/Translation_lookaside_buffer) buffer.
+
+So we should use thread with race for higher latency operations, like disk and network IO, which are usually milli seconds.
 
 # Code
 
