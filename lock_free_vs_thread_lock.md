@@ -86,7 +86,7 @@ for one million loop:
 store register to sum;
 ```
 
-We can see the optimazation for the code if three is no atomic primitive. If memory barrier exists, compiler can not do a lot of optimzation.
+We can see the optimazation for the code if there is no atomic primitive. If memory barrier exists, compiler can not do a lot of optimzation.
 
 # Guess
 
