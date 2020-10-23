@@ -66,7 +66,7 @@ g++ -std=c++17 -O2 cas_vs_mutex.cc
 
 In my MAC, the result is as follow:
 | compile option | mutex(ns) | CAS(ns) | ratio | 
-| *--* | -- | -- | -- |
+| :--: | -- | -- | -- |
 | O0 | 2071273 | 42319216 | 20 |
 | O2 | 1994 | 17901105 | 8977 |
 
