@@ -72,7 +72,7 @@ In my MAC, the result is as follow:
 | O0 | 2071273 | 42319216 | 20 |
 | O2 | 1994 | 17901105 | 8977 |
 
-# Analyze
+# Analytics
 
 For compilation of O0, critical section in mutex uses L1 cache. So the ratio is around 20.
 
@@ -90,7 +90,7 @@ store register to sum;
 
 We can see the optimazation for the code if there is no atomic primitive. If memory barrier exists, compiler can not do a lot of optimzation.
 
-# Guess
+# Guess and suggestion
 
 If we compare to a lock-free data structure like skip list, maybe one thread without any lock win in performance.
 
@@ -103,6 +103,8 @@ For Redis, Antirez, the founder of Redis, suggests to use multi process of Redis
 For skip list, maybe we can use tens threads for each CPU core, and split skip list to multi segments. If each thread does not visit the segment of skip list in other thread, there is no data race. We can use lock freely and achieve benefits from cache and compiler optimization.
 
 The additional benefit for no-using lock-free algorithm is transaction. We can lock the data structure, do subtraction to account A with addition to accoutn B. For lock-free algorithm, transaciton is not easy even not possible.   
+
+Another benefit for single thread programming is the simiplicity of coding. Lock-free algorithm is difficult to be error-free. Lock algorithm is in the middle for complexity.
 
 
 
