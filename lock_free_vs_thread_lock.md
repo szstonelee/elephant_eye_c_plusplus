@@ -29,7 +29,7 @@ So, if we use mutex and have no race, for lock acquiring, it is the same in cost
 
 **Critical section is cache-friendly, similiar to single thread performance.**
 
-NOTE: but as a whole function which includes the lock, critical section can not compete with single thread without lock, because in the boundary of the lock, i.e., lock acquiring and lock releasing, there exist memory barrier.
+NOTE: As a whole function which includes the lock, critical section can not compete with single thread without lock, because in the boundary of the lock, i.e., lock acquiring and lock releasing, there exist memory barrier. So if your applications call lock & unlcok() with the frequency as lock-free algorithm, it is the same cost if no lock contention, i.e. no thread contex switch, happens.  
 
 The tremendous cost of latency is for mutex with race because blocking threads need to sleep and wake-up-again by OS scheduler. Why? it is all about cache. When thread context switch, we lose a lot of cache like L1 ~ L3 cache and [TLB](https://en.wikipedia.org/wiki/Translation_lookaside_buffer) buffer.
 
