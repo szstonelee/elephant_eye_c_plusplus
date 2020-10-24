@@ -100,7 +100,7 @@ If we want to use multi core:
 
 For Redis, Antirez, the founder of Redis, suggests to use multi process of Redis.
 
-For skip list, maybe we can use tens threads for each CPU core, and split skip list to multi segments. If each thread does not visit the segment of skip list in other thread, there is no data race. We can use lock freely and achieve benefits from cache and compiler optimization.
+For skip list, maybe we can use one thread for each CPU core, and split skip list to multi segments of the same number of threads. If each thread does not visit the segment of skip list in other thread, there is no data race. We can use lock freely and achieve benefits from cache, compiler optimization and multi CPU core.
 
 The additional benefit for no-using lock-free algorithm is transaction. We can lock the data structure, do subtraction to account A with addition to accoutn B. For lock-free algorithm, transaciton is not easy even not possible.   
 
