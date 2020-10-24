@@ -106,5 +106,12 @@ The additional benefit for no-using lock-free algorithm is transaction. We can l
 
 Another benefit for single thread programming is the simiplicity of coding. Lock-free algorithm is difficult to be error-free. Lock algorithm is in the middle for complexity.
 
+My suggestion about applications using lock-free algorithm is to measure and compare in the following two scenarios first because single thread programming is easy to implement.
+
+1. lock-free
+2. single thread
+
+If the performance of single thread is OK, you can try to optimize it using multithread with segments of your data struture.
+
 
 
