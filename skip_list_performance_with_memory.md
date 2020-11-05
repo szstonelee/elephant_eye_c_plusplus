@@ -86,6 +86,6 @@ Memory layout is crucial for the performance of skip list in range scan.
 
 You can try other type like making key as string. When the key size grows and/or the Node is composed of the pair fields of key/value, the memory size of one node will grow and the effect of CPU cache will degrade. But from the above test cases, I am confident that the gap of the performances would be huge.
 
-So one way to optimize the performance of skip list is to reconstrut it totally again or partially if the latency of whole reconstruting is big.
+So one way to optimize the performance of skip list is to periodically reconstrut it totally again or partially if the latency of whole reconstruting is big.
 
 A new same baby is a better man, right?
