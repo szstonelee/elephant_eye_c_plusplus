@@ -113,5 +113,7 @@ My suggestion about applications using lock-free algorithm is to measure and com
 
 If the performance of single thread is OK, you can try to optimize it using multithread with segments of your data struture.
 
+My another article, [skip list performance with memory layout](skip_list_performance_with_memory.md), has the same idea.
+
 
 
