@@ -19,7 +19,7 @@ private:
     T value;
     // NOTE: we will allocate memory in place after value for contigoous layout, 
     // check create_node() & destroy_node()
-    struct Node* next[1];   
+    Node* next[1];   
   };
   
   class Iterator {
@@ -75,7 +75,7 @@ public:
 
   bool insert(const T& value) {
     Node* preds[kMaxLevel];
-    memset(preds, 0, sizeof(Node*)*(kMaxLevel));
+    std::memset(preds, 0, kMaxLevel*sizeof(Node*));
 
     auto* node = head_;
     for (int i = level_-1; i >= 0; i--) 
