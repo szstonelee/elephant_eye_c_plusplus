@@ -12,9 +12,12 @@ From the post, we know:
 3. Using sorted input, which makes the skip list tree in contiguous memory layout, will improve by 4 times comparing to optimization 2.
 
 # Range scan
-Now I will compare the performance for range scan of skip list.
+Now I will compare the performance for range scan of skip list because the range scan feature is the reason we choose skip list over hash map.
 
-For simplicity, I borrow a lot of code from the post, and do not use the fixed allocator but only the local array. You can check the whole code in code/skipset.cc.
+For simplicity, 
+1. I borrow a lot of code from the post
+2. I use skip set. It is the same thing when you change the type of set to map for skip list.
+3. I do not use the fixed allocator but only the local array. You can check the whole code in [code/skipset.cc](https://github.com/szstonelee/elephant_eye_c_plusplus/blob/master/code/skipset.cc).
 
 I will construct two skip set trees, one with random input, the other with sorted input. The numbers of tree node are same, i.e., eight million for each.
 
@@ -22,7 +25,7 @@ For random input, check the code in scan_in_random(). For sorted input, check th
 
 For the range scan, there are 1000 scans with random start node. Each scan range is 64K. Check bench_range_scan().
 
-After the sorted input, the nodes in skip set will be construted one by one. Because the memory allocator, which supports the malloc() in create_node(), will try the best to allocate the memory contigusously. I will show you two memory allocators, one is the standard libc, the other is Jemalloc.
+After the sorted input, the nodes in skip set will be construted one by one. Because the memory allocator, which supports the malloc() in create_node(), usually allocates the memory contigusously or one by one. I will show you two memory allocators. One is the standard libc, the other is Jemalloc.
 
 I will try the following test cases in my MacOS.
 
