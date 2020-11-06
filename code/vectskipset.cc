@@ -1,6 +1,9 @@
 
 #include <vector>
 #include <iostream>
+#include <random>
+#include <algorithm>
+#include <cassert>
 
 namespace sss {
 
@@ -30,43 +33,67 @@ public:
     }
   }
 
-  bool insert(const T& key) {
-    Node* preds[kMaxLevel];
-    std::memset(preds, 0, kMaxLevel*sizeof(Node*));
+  VectSkipSet& operator=(const VectSkipSet&) = delete;
 
-    auto* curr = head_;
-    for (int i = level_-1; i >= 0; --i) {
-      while(curr->next[i] && curr->next[i]->node_min_key() < key) {
+  bool empty() const {
+    if (count_ > 0) 
+      assert(level_ > 0);
+    else 
+      assert(level_ == 0);
+
+    return count_ == 0;
+  }
+
+  bool contains(const T& key) const {
+    const Node* curr = head_;
+    for (int i = level_-1; i >= 0; --i)
+    {
+      while (curr->next[i] && node_min_key(curr->next[i]) < key) {
         curr = curr->next[i];
       }
-      preds[i] = curr;
     }
-
-    auto* no_less = curr->next[0];
-    if (no_less && no_less->node_min_key() == key)
-      return false;   // next node, i,e., no_less, has the key
-
-    // now no_less is absolutely bigger than the key. NOTE: no_less could be nullptr
-
-    if (curr != head_ && exist_key(curr, key))
-      return false;   // key in the vector keys of curr node
     
+    const auto* const no_less = curr->next[0];
+    if (no_less && node_min_key(no_less) == key) {
+      return true;
+    } else {
+      // exclude no_less, now check curr
+      if (curr == head_) {
+        return false;
+      } else {
+        return exist_key(curr, key);
+      }
+    }
+  }
+
+  bool insert(const T& key) {
+    Node* preds[kMaxLevel];
+    auto [curr, no_less] = locate_curr_and_no_less(key, preds);
+
+    if (exist_in_curr_or_no_less(key, curr, no_less))
+      return false;
+
+    // now the key is distinct, in the scope [curr, no_less]
     if (is_full(curr) && is_full(no_less)) {
-      // need insert new node
-      auto in_new_node_key = key;
-      if (curr && curr->node_max_key() > key) {
-        in_new_node_key = curr->node_max_key();
+      // need a new node
+      auto new_node_key = key;
+      if (curr && node_max_key(curr) > new_node_key) {
+        std::swap(new_node_key, curr->keys[curr->iMax]);
         update_imax(curr);
       }
-      insert_new_node(preds, std::move(in_new_node_key));
+      insert_new_node(preds, std::move(new_node_key));
     } else {
-      // just insert the key to the non-full node
+      // no need to insert a new ndoe, insert the key to either curr or no_less
       if (!is_full(curr)) {
-        // prefer to insert key to curr first for debug purpose
         insert_any_key(key, curr);
       } else {
         assert(!is_full(no_less));
-        insert_min_key(key, no_less);
+        auto no_less_key = key;
+        if (curr != head_ && node_max_key(curr) > no_less_key) {
+          std::swap(no_less_key, curr->keys[curr->iMax]);
+          update_imax(curr);
+        }
+        insert_min_key(std::move(no_less_key), no_less);
       }
     }
 
@@ -74,107 +101,94 @@ public:
     return true;
   }
 
-  void insert_new_node(Node* preds[], T&& key) {
-    int lvl = random_level();
-    if (lvl > level_) {
-      for (int i = level_; i < lvl; i++) {
-        preds[i] = head_;
-      }
-      level_ = lvl;
-    }
+  bool erase(const T& key) {
+    Node* preds[kMaxLevel];
+    auto [curr, no_less] = locate_curr_and_no_less(key, preds);
 
-    auto* const new_node = create_node(lvl, key);
-    for (int i = 0; i < lvl; i++) {
-      new_node->next[i] = preds[i]->next[i];
-      preds[i]->next[i] = new_node;
-    }
-  }
+    if (!exist_in_curr_or_no_less(key, curr, no_less))
+      return false;
 
-  // guarantee the key is the smallest one
-  void insert_min_key(const T& key, Node* node) {
-    assert(node && node != head_ && node->keys.size() < kCapacity);
-    assert(key < node->node_min_key());
-
-    node->iMin = node->keys.size();
-    node->keys.push_back(key);
-  }
-
-  // guarantee the key is distinct and greater than the min key of the node 
-  void insert_any_key(const T& key, Node* node) {
-    assert(node && node != head_ && node->keys.size() < kCapacity);
-    assert(key > node->node_min_key());
-    assert(!exist_key(node, key));
-
-    if (key > node->node_max_key())
-      node->iMax = node->keys.size();
-    
-    node->keys.push_back(key);
-  }
-
-  // NOTE: if node is the head_ or node is nullptr, it means the node can not be inserted new keys
-  bool is_full(Node* node) {
-    if (node == head_ || node == nullptr) {
-      return true;
-    } else {
-      return node->keys.size() == kCapacity;
-    }
-  }
-
-/*
-  // insert the key from the start_node until the end, i.e., each node must meet the capacity
-  // if every nodes including the start_node and the following ones are full capacity, 
-  // i.e, all overflow, return false and set the overflow, which is the last overflow of the biggest key
-  // otherwise, return true. The value of overflow is useless.
-  bool insert_key_until_end(const T& key, Node* start_node, T& overflow) {
-    assert(start_node && start_node != head_);
-
-    auto* node = start_node;
-    auto new_key = key;
-    while (node) {
-      if (try_insert_key(node, new_key, overflow) {
-        return true;
+    // now key in either curr or no_less, we need to delete it
+    if (no_less && key == node_min_key(no_less)) {
+      // key in no_less node
+      if (is_single_key_node(no_less)) {
+        delete_node(preds, no_less);
       } else {
-        node = node->next[0];
-        new_key = overflow;
+        delete_key_from_node(key, no_less);
       }
+    } else {
+      // key in curr node
+      assert(exist_key(curr, key));
+      if (is_single_key_node(curr)) {
+        delete_node(preds, curr);
+      } else {
+        delete_key_from_node(key, curr);
+      }
+    }
+
+    --count_;
+    return true;
+  }
+
+  int count() const {
+    return count_;
+  }
+
+  void test_print_node(Node* node) {
+    std::cout << "key size = " << node->keys.size() << ": (";
+    for (const auto& key : node->keys) {
+      std::cout << key << ", ";
+    }
+    std::cout << " )";
+  }
+
+  void test_print_whole_nodes() {
+    int index = 0;
+    auto* node = head_;
+    while (node) {
+      if (node == head_) {
+        std::cout << "head node: \n";
+      } else {
+        std::cout << "node " << index << ": " << "min_key = " << node_min_key(node) << ", max_key = " << node_max_key(node) << ": ";
+        test_print_node(node);
+        std::cout << '\n';
+      }
+      node = node->next[0];
+      ++index;
+    }
+  }
+
+  void test_insert(const std::vector<T>& keys) {
+    for (int i = 0, sz = keys.size(); i < sz; ++i) {
+      insert(keys[i]);
+      std::cout << "insert i = " << i << ", count = " << count() <<  ", level = " << level_ << '\n';
+      test_print_whole_nodes();
+    }
+  }
+
+  bool test_key_in_vector(const T& key, const std::vector<T>& keys) {
+    for (const auto& k : keys) {
+      if (k == key) return true;
     }
     return false;
   }
 
-  // insert the key which should be the smallest key in the node
-  // if under capacity, return true, update the iMin
-  // if reach capacity, return false, the max key of the node will be popped to the overflow, and update the iMax 
-  bool try_insert_key(Node* node, const T& key, T& overflow) {
-    assert(key < node_min_key(node) && node->keys.size() <= kCapacity);
-
-    if (node->keys.size() == kCapacity) {
-      // overflow, pop the max key
-      overflow = node_max_key(node);
-      node->keys[node->iMax] = key;
-      node->iMin = node->iMax;
-      update_imax(node);
-      return false;
-    } else {
-      // under capacity, can insert the key in the node
-      node->keys.push_back(key);
-      node->iMin = node->keys.size() - 1;
-      return true;
+  // each key in delete keys must be distinct 
+  void test_erase(const std::vector<T>& insert_keys, const std::vector<T>& delete_keys) {
+    for (const auto& key : insert_keys) {
+      assert(insert(key));
     }
-  }
 
-  // O(n) to update imax of the node, but for vector, it is quick
-  void update_imax(Node* node) {
-    int new_imax = 0;
-    for (int i = 1, sz = node->keys.size(); i < sz; ++i) {
-      assert(node->keys[i] != node->keys[new_imax]);
-      if (node->keys[i] > node->keys[new_imax]) {
-        new_imax = i;
+    for (const auto& key : delete_keys) {
+      if (test_key_in_vector(key, insert_keys)) {
+        assert(erase(key));
+      } else {
+        assert(!erase(key));
       }
+      std::cout << "after delete key = " << key << ", whole nodes are like \n";
+      test_print_whole_nodes();
     }
-    assert(new_imax != node->imax);
-    node->imax = new_imax;
   }
-*/
 
   void test_create_node(T v) {
     constexpr int level = 3;
@@ -202,39 +216,198 @@ public:
   }
 
 private:
-  bool exist_key(Node* node, const T& to_find) const {
+  bool is_single_key_node(Node* node) const {
     assert(node && node != head_);
+    return node->keys.size() == 1;
+  }
+
+  // iterate skip list's levels from top to bottom, locate the exact [curr, no_less] scope in level 0
+  // where no_less's min key is equal or bigger than the key
+  // if no_less is nullptr, it means the node with the virtual absolute max key
+  // preds will store the previous nodes for each level
+  std::tuple<Node*, Node*> locate_curr_and_no_less(const T& key, Node* preds[]) const {
+    std::memset(preds, 0, kMaxLevel*sizeof(Node*));
+
+    auto* curr = head_;
+    for (int i = level_-1; i >= 0; --i) {
+      while(curr->next[i] && node_min_key(curr->next[i]) < key) {
+        curr = curr->next[i];
+      }
+      preds[i] = curr;
+    }
+
+    auto* no_less = curr->next[0];
+
+    return {curr, no_less};
+  }
+
+  bool exist_in_curr_or_no_less(const T& key, const Node* const curr, const Node* const no_less) const {
+    if (no_less && node_min_key(no_less) == key)
+      return true;   // key in the no_less node
+
+    if (curr != head_ && exist_key(curr, key))
+      return true;   // key in the curr node
+
+    return false;
+  }
+
+  void insert_new_node(Node* preds[], T&& key) {
+    const int lvl = random_level();
+    if (lvl > level_) {
+      for (int i = level_; i < lvl; i++) {
+        preds[i] = head_;
+      }
+      level_ = lvl;
+    }
+
+    auto* const new_node = create_node(lvl, std::forward<T>(key));
+    for (int i = 0; i < lvl; i++) {
+      new_node->next[i] = preds[i]->next[i];
+      preds[i]->next[i] = new_node;
+    }
+  }
+
+  void delete_node(Node* preds[], Node* to_delete) {
+    assert(to_delete && to_delete != head_);
+
+    for (int i = 0; i < level_; i++) {
+      if (preds[i]->next[i] != to_delete)
+        break;
+      preds[i]->next[i] = to_delete->next[i];
+    }
+    while (level_ > 0 && head_->next[level_] == nullptr)
+      --level_;
+  }
+
+  // guarantee the key is distinct and less than the min key of the node
+  void insert_min_key(T&& key, Node* const node) const {
+    assert(node && node != head_ && node->keys.size() < kCapacity);
+    assert(!exist_key(node, key) && key < node_min_key(node));
+
+    node->iMin = node->keys.size();
+    node->keys.push_back(key);
+  }
+
+  // guarantee the key is distinct and greater than the min key of the node 
+  void insert_any_key(const T& key, Node* const node) const {
+    assert(node && node != head_ && node->keys.size() < kCapacity);
+    assert(!exist_key(node, key) && key > node_min_key(node));
+
+    if (key > node_max_key(node))
+      node->iMax = node->keys.size();
+    
+    node->keys.push_back(key);
+  }
+
+  void delete_key_from_node(const T& key, Node* node) const {
+    assert(node && node != head_ && node->keys.size() > 1);
+
+    int index = -1;
+    for (int i = 0, sz = node->keys.size(); i < sz; ++i) {
+      if (key == node->keys[i]) {
+        index = i;
+        break;
+      }
+    }
+    assert(index != -1);
+
+    node->keys.erase(node->keys.begin()+index);
+
+    if (index != node->iMin && index != node->iMax) {
+      if (node->iMin > index) 
+        --node->iMin;
+      if (node->iMax > index)
+        --node->iMax;
+    } else {
+      // the deleted key is the min or max key, we need update iMin and/or iMax
+      update_imin_imax(node);
+    }
+  }
+
+  // If node is the head_ or node is nullptr, it means the node can not accept new keys, 
+  // so return true. Otherwise, check the capacity of the node
+  bool is_full(const Node* const node) const {
+    if (node == head_ || node == nullptr) {
+      return true;
+    } else {
+      assert(node->keys.size() <= kCapacity);
+      return node->keys.size() == kCapacity;
+    }
+  }
+
+  // update imax of the node after the max key has been changed
+  // O(N) for vector but quick enough
+  void update_imax(Node* const node) const {
+    assert(node && node != head_ && !node->keys.empty());
+
+    int new_imax = 0;
+    for (int i = 1, sz = node->keys.size(); i < sz; ++i) {
+      assert(node->keys[i] != node->keys[new_imax]);
+      if (node->keys[i] > node->keys[new_imax]) {
+        new_imax = i;
+      }
+    }
+    if (node->iMax != new_imax) // NOTE: new_imax could be same with the previous iMax
+      node->iMax = new_imax;  // less write for better performance
+  }
+
+  void update_imin_imax(Node* const node) const {
+    assert(node && node != head_ && !node->keys.empty());
+
+    int new_imin = 0;
+    int new_imax = 0;
+    for (int i = 1, sz = node->keys.size(); i < sz; ++i) {
+      assert(node->keys[i] != node->keys[new_imin]);
+      assert(node->keys[i] != node->keys[new_imax]);
+
+      if (node->keys[i] > node->keys[new_imax]) {
+        new_imax = i;
+      }
+      if (node->keys[i] < node->keys[new_imin]) {
+        new_imin = i;
+      }
+    }
+    if (node->iMin != new_imin)
+      node->iMin = new_imin;
+    if (node->iMax != new_imax)
+      node->iMax = new_imax;
+  }
+
+  // O(N) for vector but quick enough
+  bool exist_key(const Node* const node, const T& to_find) const {
+    assert(node && node != head_);
+
     for (const auto& key : node->keys) {
       if (key == to_find) return true;
     }
     return false;
   }
 
-  T& node_min_key(Node* node) const {
+  T node_min_key(const Node* const node) const {
     assert(!node->keys.empty());
     assert(node->iMin >= 0 && node->iMin < node->keys.size());
     return node->keys[node->iMin];
   }
 
-  T& node_max_key(Node* node) const {
+  T node_max_key(const Node* const node) const {
     assert(!node->keys.empty());
     assert(node->iMax >= 0 && node->iMax < node->keys.size());
     return node->keys[node->iMax];
   }
 
-  Node* create_node(const int level, const T& new_value) const {
-    auto copy = new_value;
+  Node* create_node(const int level, const T& key) const {
+    auto copy = key;
     return create_node(level, std::move(copy));
   }
 
-  Node* create_node(const int level, T&& new_key) const {
+  Node* create_node(const int level, T&& first_key) const {
     assert(level > 0 && level <= kMaxLevel);
 
     void* new_mem = std::malloc(sizeof(Node) + (level-1)*sizeof(Node*));
-    Node* new_node = static_cast<Node*>(new_mem);
+    Node* const new_node = static_cast<Node*>(new_mem);
  
     new (&new_node->keys) std::vector<T>();
-    new_node->keys.push_back(new_key);
+    new_node->keys.push_back(first_key);
     new_node->iMin = 0;
     new_node->iMax = 0;
     for (int i = 0; i < level; ++i) {
@@ -244,6 +417,7 @@ private:
     return new_node;
   }
 
+  // for debug, the node needs to empty all keys before destroy 
   void destroy_node(Node* node) const noexcept {
     assert(node->keys.empty());
 
@@ -272,16 +446,62 @@ private:
 
   const int kMaxLevel = 32;
   const float kProbability = 0.5;
-  const int kCapacity = 128;
+  const int kCapacity = 16;
 };
 
 } // namespace sss
 
-int main() {
+void test_shuffle() {
+  std::srand(time(0));
+
+  std::random_device rd;
+  std::mt19937 g(rd());
+
+  constexpr int num_elements = 2 << 20;
+  std::vector<int> elements(num_elements);
+  std::vector<int> to_deletes;
+  to_deletes.reserve(num_elements/2);
+  std::vector<int> to_searchs;
+  to_searchs.reserve(num_elements/2);
+  for (int j=0; j < num_elements; ++j) {
+    elements[j] = j;
+    if (rand()%2 == 0) {
+      to_deletes.push_back(j);
+    } else {
+      to_searchs.push_back(j);
+    }
+  }
+  std::shuffle(elements.begin(), elements.end(), g);
+
   sss::VectSkipSet<int> vss;
+  for (const auto element : elements) {
+    auto res = vss.insert(element);
+    assert(res);
+  }
 
-  vss.test_create_node(100);
-  vss.test_destroy_node(200);
+  for (const auto item : to_deletes) {
+    auto res = vss.erase(item);
+    assert(res);
+  }
 
+  for (const auto item : to_searchs) {
+    auto res = vss.contains(item);
+    assert(res);
+  }
+
+  std::cout << "vss count = " << vss.count() << ", to_searchs size = " << to_searchs.size() << '\n';
+}
+
+int main() {
+  // sss::VectSkipSet<int> vss;
+
+  // std::vector<int> keys = {4, 2, 19, 7, 14, 3, 8, 5, 6, 9, 10, 11, 1, 12};
+  // vss.test_insert(keys);
+
+  // std::vector<int> insert_keys = {1, 2, 3, 4, 5, 6, 7};
+  // std::vector<int> delete_keys = {4, 1, 5, 6};
+  // vss.test_erase(insert_keys, delete_keys);
+
+  test_shuffle();
   return 0;
 }

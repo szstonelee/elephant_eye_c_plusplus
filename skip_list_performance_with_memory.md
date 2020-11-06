@@ -17,7 +17,15 @@ Now I will compare the performance for range scan of skip list because the range
 For simplicity, 
 1. I borrow a lot of code from the post
 2. I use skip set. It is the same thing when you change the type of set to map for skip list.
-3. I do not use the fixed allocator but only the local array. You can check the whole code in [code/skipset.cc](https://github.com/szstonelee/elephant_eye_c_plusplus/blob/master/code/skipset.cc).
+3. I do not use the fixed allocator but only the local array. 
+
+You can check the whole code in following links
+
+[code/skipset.h](https://github.com/szstonelee/elephant_eye_c_plusplus/blob/master/code/skipset.h)
+
+[code/skipset.cc](https://github.com/szstonelee/elephant_eye_c_plusplus/blob/master/code/skipset.cc)
+
+[code/bench_skipset.cc](https://github.com/szstonelee/elephant_eye_c_plusplus/blob/master/code/bench_skipset.cc)
 
 I will construct two skip set trees, one with random input, the other with sorted input. The numbers of tree node are same, i.e., eight million for each.
 
@@ -37,7 +45,7 @@ I will try the following test cases in my MacOS.
 
 ## gcc O0
 ```
-g++ skipset.cc -std=c++17 -O0
+g++ skipset.cc bench_skipset.cc -std=c++17 -O0
 ```
 
 | random time (second) | contiguous time (second) | random/contiguous |
@@ -46,7 +54,7 @@ g++ skipset.cc -std=c++17 -O0
 
 ## gcc O2
 ```
-g++ skipset.cc -std=c++17 -O2
+g++ skipset.cc bench_skipset.cc -std=c++17 -O2
 ```
 
 | random time (second) | contiguous time (second) | random/contiguous |
@@ -61,7 +69,7 @@ brew install jemalloc
 
 Check [Jemalloc help](https://github.com/jemalloc/jemalloc/wiki/Getting-Started)
 ```
-g++ skipset.cc -std=c++17 -O2 -L`jemalloc-config --libdir` -Wl,-rpath,`jemalloc-config --libdir` -ljemalloc `jemalloc-config --libs`
+g++ skipset.cc bench_skipset.cc -std=c++17 -O2 -L`jemalloc-config --libdir` -Wl,-rpath,`jemalloc-config --libdir` -ljemalloc `jemalloc-config --libs`
 ```
 It will compile the code by using dynamic memory library of Jemalloc. You can check it for sure
 ```
