@@ -31,19 +31,19 @@ int test_cas(const int times) {
 
 // try g++ -std=c++17 -O0 cas_vs_mutex.cc
 // and g++ -std=c++17 -O2 cas_vs_mutex.cc
-int main(int argc, char* argv[]) {
+int main() {
   using namespace cas_vs_mutex;
 
   constexpr int TIMES = 1 << 20;  // one million times
 
-  auto start1 = std::chrono::steady_clock::now();
+  const auto start1 = std::chrono::steady_clock::now();
   test_mutex(TIMES);
-  std::chrono::nanoseconds d1 = std::chrono::steady_clock::now() - start1;
+  const std::chrono::nanoseconds d1 = std::chrono::steady_clock::now() - start1;
   std::cout << "duration(ns) for test_mutex() = " << d1.count() << '\n';
 
-  auto start2 = std::chrono::steady_clock::now();
+  const auto start2 = std::chrono::steady_clock::now();
   test_cas(TIMES);
-  std::chrono::nanoseconds d2 = std::chrono::steady_clock::now() - start2;
+  const std::chrono::nanoseconds d2 = std::chrono::steady_clock::now() - start2;
   std:: cout << "duration(ns) for test_cas() = " << d2.count() << '\n';
 
   std::cout << "ratio of test_cas/test_mutex = " << d2/d1 << '\n';
