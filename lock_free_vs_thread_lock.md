@@ -69,7 +69,7 @@ g++ -std=c++17 -O2 cas_vs_mutex.cc
 ```
 
 In my MAC, the result is as follow:
-| compile option | no race mutex(ns) | CAS(ns) | ratio (CAS/mutex) | 
+| compile option | no contention mutex(ns) | CAS(ns) | ratio (CAS/mutex) | 
 | :--: | -- | -- | :--: |
 | O0 | 2071273 | 42319216 | 20 |
 | O2 | 1994 | 17901105 | 8977 |
@@ -80,7 +80,7 @@ For compilation of O0, critical section in mutex uses L1 cache. So the ratio is 
 
 For compilation of O2, crititcal section in mutex uses CPU register. So the ratio is close to 9K.
 
-In O2 compilation, the code in critical section is like these
+In O2 compilation, the code in critical section is like the following
 
 ```
 sum = 0;
@@ -102,7 +102,7 @@ If we want to use multi core:
 
 For Redis, Antirez, the founder of Redis, suggests to use multi process of Redis.
 
-For skip list, maybe we can use one thread for each CPU core, and split skip list to multi segments of the same number of threads. If each thread does not visit the segment of skip list in other thread, there is no data race. We can use lock freely and achieve benefits from cache, compiler optimization and multi CPU core.
+For skip list, maybe we can use one thread for each CPU core, and split skip list to multi segments of the same number of threads. If each thread does not visit the segment of skip list in other thread, there is no data contention. We can use lock freely and achieve benefits from cache, compiler optimization and multi CPU core.
 
 The additional benefit for no-using lock-free algorithm is transaction. We can lock the data structure, do subtraction to account A with addition to accoutn B. For lock-free algorithm, transaciton is not easy even not possible.   
 
@@ -115,7 +115,10 @@ My suggestion about applications using lock-free algorithm is to measure and com
 
 If the performance of single thread is OK, you can try to optimize it using multithread with segments of your data struture.
 
-My another article, [skip list performance with memory layout](skip_list_performance_with_memory.md), has the same idea.
+My another two articles, 
+1. [skip list performance with memory layout](skip_list_performance_with_memory.md), 
+2. [Vector Skip List vs Skip List](vector_skip_list.md)
+has the same idea.
 
 
 
