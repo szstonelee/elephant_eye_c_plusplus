@@ -8,7 +8,7 @@ namespace cas_vs_mutex {
 std::mutex g_mutex;
 
 int test_mutex(const int times) {
-  std::lock_guard<std::mutex> lock(g_mutex);
+  const std::lock_guard<std::mutex> lock(g_mutex);
 
   int sum = 0;
   for (int i = 0; i < times; ++i) {
