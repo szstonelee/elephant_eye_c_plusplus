@@ -17,6 +17,11 @@ public:
   class ImmuIter {   
   public:
     explicit ImmuIter(const Node* node, const T& key);
+    explicit ImmuIter(const ImmuIter&) = default;
+    explicit ImmuIter(ImmuIter&&) = default;
+    ImmuIter& operator=(const ImmuIter&) = default;
+    ImmuIter& operator=(ImmuIter&&) = default;
+    
     bool operator==(const ImmuIter& it) const;
     bool operator!=(const ImmuIter& it) const;
     void operator++();
@@ -62,7 +67,6 @@ private:
   void destroy_node(Node* node) const noexcept;
   int random_level() const;
 
-
 public:
   void test_print_node(Node* node);
   void test_print_whole_nodes();
@@ -72,15 +76,14 @@ public:
   void test_create_node(T v);
   void test_destroy_node(T v);
 
-
 private:
   Node* head_;
   int level_;
   int count_;
 
-  const int kMaxLevel = 32;
+  const int kMaxLevel = 24;   // 32 - 8 = 24
   const float kProbability = 0.5;
-  const int kCapacity = 64;
+  const int kCapacity = 64;   // 64 = 2 ^ 8
 };
 
 } // namespace sss

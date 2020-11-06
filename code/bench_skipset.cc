@@ -94,7 +94,7 @@ void scan_in_random(const int set_sz, const int scope,
     ss.insert(element);
 
   int num_total = 0;
-  const double start_time = sys_time();
+  auto start_time = sys_time();
   for (const auto start : starts) {
     auto it = ss.find(start);
     for (int i = 0; i < scope; ++i) {

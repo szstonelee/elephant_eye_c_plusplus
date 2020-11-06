@@ -466,7 +466,7 @@ VectSkipSet<T>::ImmuIter::ImmuIter(const Node* node, const T& key) {
     curr_ = node;
     sort_keys_ = node->keys;
     std::sort(sort_keys_.begin(), sort_keys_.end());
-    auto it = std::binary_search(sort_keys_.begin(), sort_keys_.end(), key);
+    auto it = std::find(sort_keys_.begin(), sort_keys_.end(), key);
     assert(it != sort_keys_.end());
     index_ = it - sort_keys_.begin();
   }
