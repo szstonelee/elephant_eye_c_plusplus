@@ -4,9 +4,17 @@ Maybe not.
 
 **Even single thread may outperfrom lock-free algorithm with 100-CPU-core super machine.**
 
+In otherwords, for one specific algorithm,
+
+**Single thread could beat multi concurrent threads which use no lock.**
+
+or
+
+**One CPU core could run faster than multi CPU cores in parallel with no contention.**
+
 # Background
 
-Basiclly, lock-free algorithms use atomic primitive and avoid lock like mutex or spinlock.
+Basiclly, lock-free algorithms use atomic primitive and avoid any locks like mutex or spinlock.
 
 The common method for lock-free algorithm is CAS, i.e., [compare and swap](https://en.wikipedia.org/wiki/Compare-and-swap).
 
