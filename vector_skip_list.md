@@ -46,9 +46,9 @@ I tried to compile with Jemalloc, the result is similiar with O2 but a little qu
 
 # Recap
 
-1. Memory layout is crucial for the performance of Skip List. When using vector with Skip List, as you check the Vector Skip List, the gap is 5.4 times.
-2. Compiler is better for vector when uses O2 over O0. 30% improvement or 50% degradation.
+1. Memory layout is crucial for the performance of Skip List. When using vector with Skip List, as you check the Vector Skip List, the gap for range scan is 5.4 times.
+2. The improvement of performance is better for vector wither compiler optimization, i.e., O2 vs O0. 30% improvement or 50% degradation.
 3. You need adjust the capacity of vecctor for the best performance. For the above test case, I found the capacity of 64 is probably the best. For your size of key, it needs to be tested.
-4. When I use vector, I can lower the threshhold of the biggest height of the tree. In vectskipset.h, check kMaxLevel and kCapacity. It is good for a large tree.
-5. The Vector Skip List is the same idea of Redis's ziplist for small hash table.
-6. As a bonus, when we use Vector Skip List, we save memory. The number of nodes decreases. The vector is good for memory cost if you compare random keys in the heap.
+4. When I use vector, I can lower the threshhold of the biggest height of the skip list tree. In vectskipset.h, check kMaxLevel and kCapacity. It would be better for a large tree because it is lower when extreme random number happens.
+5. The Vector Skip List is the same idea of Redis's ziplist for small hash table. O(N) is same or faster than O(1) for memory layout.
+6. As a bonus, when we use Vector Skip List, we save memory. The number of nodes is less. The vector is good for memory cost if you compare random keys in the heap.
