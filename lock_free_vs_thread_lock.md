@@ -2,7 +2,7 @@ Is lock-free algorithm faster than thread lock algorithm?
 
 Maybe not.
 
-**Even single thread may outperfrom lock-free algorithm with 100-CPU-core super machine.**
+**Even single thread may outperform lock-free algorithm with 100-CPU-core super machine.**
 
 In otherwords, for one specific algorithm,
 
