@@ -82,7 +82,7 @@ In my MAC, the result is as follow:
 | O0 | 2071273 | 42319216 | 20 |
 | O2 | 1994 | 17901105 | 8977 |
 
-Single thread with mutex beat lock-free with CAS (in one thread) by nine thousand times. 
+Single thread with mutex beats lock-free with CAS (in one thread) by nine thousand times. 
 
 We can conclude that the lock-free code runs in parallel with one hundred threads in a 100-CPU-cores super machine will lose the performance battle. 
 
@@ -120,16 +120,20 @@ The additional benefit for no-using lock-free algorithm is transaction. We can l
 
 Another benefit for single thread programming is the simiplicity of coding. Lock-free algorithm is difficult to be error-free. Lock algorithm is in the middle for complexity.
 
-My suggestion about applications using lock-free algorithm is to measure and compare in the following two scenarios first because single thread programming is easy to implement.
+My suggestion about applications using lock-free algorithm is to measure. You can compare the performance in the following two scenarios:
 
 1. lock-free
 2. single thread
 
-If the performance of single thread is OK, you can try to optimize it using multithread with segments of your data struture.
+ Single thread programming is easy to implement, lock-free is very complex and prone to error.
+
+If the performance of single thread is OK, you can try to optimize it more by using multithread with segments of your data struture.
 
 My another two articles, 
+
 1. [skip list performance with memory layout](skip_list_performance_with_memory.md), 
 2. [Vector Skip List vs Skip List](vector_skip_list.md)
+
 has the same idea.
 
 
