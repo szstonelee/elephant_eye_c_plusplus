@@ -82,6 +82,10 @@ In my MAC, the result is as follow:
 | O0 | 2071273 | 42319216 | 20 |
 | O2 | 1994 | 17901105 | 8977 |
 
+Single thread with mutex beat lock-free with CAS (in one thread) by nine thousand times. 
+
+We can conclude that the lock-free code runs in parallel with one hundred threads in a 100-CPU-cores super machine will lose the performance battle. 
+
 # Analytics
 
 For compilation of O0, critical section in mutex uses L1 cache. So the ratio is around 20.
