@@ -26,6 +26,42 @@ private:
   };
 
 public:
+  class Iterator {
+  public:
+    Iterator(Node* node) : curr_(node) {
+      assert(node != nullptr);
+    }
+    ~Iterator() noexcept = default;
+    Iterator(const Iterator& copy) = default;
+    Iterator& operator=(const Iterator& rhs) = default;
+
+    Iterator& operator++() {
+      bool finish = false;
+      while (!finish) {
+        curr_ = curr_->nexts[0].get_ref();
+        if (!curr_->nexts[0].get_flag())
+          finish = true;
+      }
+      return *this;
+    }
+
+    T operator*() const {
+      return curr_->key;
+    }
+
+    bool operator==(const Iterator& rhs) const {
+      return curr_ == rhs.curr_;
+    }
+
+    bool operator!=(const Iterator& rhs) const {
+      return !((*this) == rhs);
+    }
+    
+    private:
+      Node* curr_;  
+    };
+
+public:
   LockFreeSkipSet() : size_(0) {
     head_ = new Node(T(), kMaxHeight);
     tail_ = new Node(T(), kMaxHeight);
@@ -172,15 +208,18 @@ public:
   }
 
   // remove() is set deleted flag, i.e. logically deleted, from top to bottom. 
-  // That is all. We do not need to unlink them. Leave unlink jobs to call find() by other threads or my thread later sometimes.
+  // 
   // NOTE the flipping operation may be run at the same time by another thread.
   // But for the following guaratees:
   //    1. The direction for setting flags is from top to bottom
   //    2. Flag can only be set fram false to true, i.e., no deleted -> logically deleted
-  // so it does not matter and can supoort concurrent operations and do not violate the property of skip set.
+  // so it does not matter and can supoort concurrent operations and does not violate the property of skip set.
+  // 
   // But the trick is that only one thread can flip the level0's flag from false to true,
   // because we need to return true or flase which indicated which thread is the first thread (and only thread) to flip the level0 flag
   // So we need to use CAS in try_flag_in_level0().
+  //
+  // If the thread is the one who flip the level0 flag, it call find() again to unlink it.
   bool remove(const T& key) {
     Node* preds[kMaxHeight];
     Node* succs[kMaxHeight];
@@ -193,7 +232,12 @@ public:
 
     set_other_levels_flags(to_remove_node);
 
-    return try_flag_in_level0(to_remove_node);
+    if (try_flag_in_level0(to_remove_node)) {
+      find(key, preds, succs);  // unlink
+      return true;
+    } else {
+      return false;
+    }
   }
 
   // contains traverse like find() but do no unlink work
@@ -228,6 +272,25 @@ public:
     }
 
     return false;
+  }
+
+  Iterator locate(const T& key) {
+    Node* preds[kMaxHeight];
+    Node* succs[kMaxHeight];
+
+    if (!find(key, preds, succs)) {
+      return Iterator(tail_);
+    } else {
+      return Iterator(succs[0]);
+    }
+  }
+
+  Iterator begin() {
+    return Iterator(head_[0]->nexts[0].get_ref());
+  }
+
+  Iterator end() {
+    return Iterator(tail_);
   }
 
   void debug_print() const {
@@ -526,6 +589,7 @@ private:
   const int kMaxHeight = 32;
   const float kProbability = 0.5;
   const int kMaxTryCount = INT_MAX;
+
 };
 
 
