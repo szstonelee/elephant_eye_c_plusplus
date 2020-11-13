@@ -54,11 +54,11 @@ void test_memory_leak() {
 }
 
 int main() {
-  // add_3_2_1();
+  add_3_2_1();
 
-  // test_find_and_contain_with_concurrent_flag();
+  test_find_and_contain_with_concurrent_flag();
 
-  // test_find_remove_multi_nodes();
+  test_find_remove_multi_nodes();
 
   test_memory_leak();
 

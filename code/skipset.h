@@ -40,6 +40,7 @@ private:
 public:
   SkipSet();
   ~SkipSet() noexcept;
+  SkipSet(const SkipSet&) = delete;
   SkipSet& operator=(const SkipSet&) = delete;
 
   bool empty() const;
@@ -54,14 +55,14 @@ private:
   Node* create_node(const int level, const T& new_value) const;
   Node* create_node(const int level, T&& new_value) const;
   void destroy_node(Node* node) const noexcept;
-  int random_level() const;
+  int random_height() const;
   
 private:
   Node* head_;
-  int level_;
+  int height_;
   int count_;
 
-  const int kMaxLevel = 32;
+  const int kMaxHeight = 32;
   const float kProbability = 0.5;
 };
 

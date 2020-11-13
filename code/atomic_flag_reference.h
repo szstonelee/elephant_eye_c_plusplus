@@ -14,7 +14,7 @@ template<class T>
 class FlagReference {
 private:
   static const uintptr_t kLastBitMask = 1;
-  std::atomic<uintptr_t> combine_;
+  std::atomic<uintptr_t> combine_;  // NOTE: ref+flag. ref value points to next object, but flag value is for itself
 
 public:
   // ctor, dtor, assign
@@ -80,7 +80,7 @@ public:
     bool finish = false;
     while (!finish) {
       const auto new_val = combine(ref, parse_flag(old_val));
-      finish = combine_.compare_exchange_weak(old_val, new_val, order);
+      finish = combine_.compare_exchange_weak(old_val, new_val, order); // if fail, old_val will be refreshed like combine_.load()
     }
 
     return parse_ref(old_val);

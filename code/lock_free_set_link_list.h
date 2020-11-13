@@ -27,10 +27,12 @@ public:
     head_->next.set_ref(tail_);
   }
 
-  // when dtor(), it needs the app to guarantee no thread to call add() or remove() during the time
+  // when dtor(), it needs the app to guarantee no thread moidifying the internal data structure,
+  // e.g. calling add() or remove() or find()
   // because it could violate the integrity, like
   // 1. delete the node for multi times 
   // 2. can miss some just added nodes which leads to memory leakage
+  // it also make those nodes being freed but concurrent thread try to visit them, i.e. dangling potiner
   ~LockFreeSetLinkList() noexcept {
     delete_all_nodes();
 
@@ -43,7 +45,7 @@ public:
   LockFreeSetLinkList(const LockFreeSetLinkList&) = delete;
   LockFreeSetLinkList& operator=(const LockFreeSetLinkList& rhs) = delete;
 
-// because find() is the base private member function, we show here
+// because find() is the base private member function, we show here even find() is a private member function
 
 private:
   // find() will locate the key at [pred, curr] from scope [head_, tail_] where 
@@ -99,18 +101,20 @@ private:
         if (!try_unlink(pred, curr, succ))
           return false;
 
-        curr = succ;
+        // curr has been unlinked successfully, 
+        // so curr needs to be the next one and test logical deleted again
+        curr = succ;   
 
       } else {
-        if (curr->key >= key) 
-          return true;
+        if (curr == tail_ || curr->key >= key) 
+          break;
         
         pred = curr;
         curr = succ;
       }
     }
 
-    return true;  // tail_ can not be deleted and we can return tail_ as curr
+    return true;
   }
 
   // try to phisically delete the node curr, i.e. unlink.
@@ -135,9 +139,9 @@ private:
   // NOTE1: succ could be logically deleted concurrently when we make pred point to succ, but it is OK with the integrity.
   //   e.g. in remove(), before we call set_flag(), 
   //        succ is logically deleted but not physicall deleted concurrently by another thread.
-  //        then in remove(), we get succ by call curr->next.get_ref(); then call in to try_unlink()
+  //        then in remove(), we get succ by calling curr->next.get_ref(); then call in to try_unlink()
   //        if we can continue, unlink will be sucessful for curr. So pred->succ, but now succ is logically deleted
-  //        it is OK for ingrety. check integrity: pred->succ(logically deleted) and curr is unlinked
+  //        it is OK for integrity. check integrity: pred->succ(logically deleted) and curr is unlinked
   //        but succ can not be physically deleted. check NOTE 2
   // 
   // NOTE2: curr must point to succ, i.e., no new nodes can be added between [curr, succ], or unlink curr -> succ
@@ -263,7 +267,8 @@ public:
     auto* curr = head_->next.get_ref();
 
     while (curr != tail_) {
-      if (curr->key >= key) break;
+      if (curr->key >= key) 
+        break;
 
       curr = curr->next.get_ref();
     }
@@ -315,15 +320,26 @@ public:
 
 private:
   bool try_add(const T& key, Node* const pred, Node* const curr) {
-    auto* new_node = new Node(key);
-    new_node->next.set_ref(curr);
+    assert(curr == tail_ || curr->key > key);
+    assert(pred == head_ || head_->key < key);
 
-    if (pred->next.compare_and_set(curr, new_node, false, false)) {
+    auto* new_node = new Node(key);
+
+    if (try_link(new_node, pred, curr)) {
       return true;
     } else {
       delete new_node;
       return false;
     }
+  }
+
+  bool try_link(Node* const new_node, Node* const pred, Node* const curr) {
+    assert(new_node->next.get_flag() == false);
+
+    new_node->next.set_ref(curr);
+
+    const bool success = pred->next.compare_and_set(curr, new_node, false, false);
+    return success;
   }
 
   void gc_clear() {
@@ -347,7 +363,7 @@ private:
   Node* head_;  // sentinel virtual pointer, which key is less than any nodes
   Node* tail_;  // sentinel virtual pointer, which key is greater than any nodes
   std::atomic<int> size_;  // only count nodes exclude unlink nodes, i.e., if logically deleted, they will be counted into size_
-  const int kMaxTryCount = 1024; // if you want disable the threashhold, set it to be INT_MAX
+  const int kMaxTryCount = INT_MAX; // if you want disable the threashhold, set it to be INT_MAX
 
   std::mutex gc_mutex_;
   std::vector<Node*> gc_nodes_; 
