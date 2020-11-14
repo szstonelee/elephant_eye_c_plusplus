@@ -151,7 +151,7 @@ void test_immuiter() {
 
 // compare skip set & vector skip set for random insert then range scan
 void bench_scan_cmp() {
-  constexpr int set_sz = 1 << 23;   // 8 Million
+  constexpr int set_sz = 8 << 20;   // 8 Million
   std::vector<int> elements(set_sz);
   for (int i = 0; i < set_sz; ++i) {
     elements[i] = i;

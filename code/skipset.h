@@ -10,7 +10,7 @@ class SkipSet
 private:
   struct Node
   {
-    T value;
+    T key;
     // NOTE: we will allocate memory in place after value for contigoous layout, 
     // check create_node() & destroy_node()
     Node* next[1];   
@@ -33,6 +33,10 @@ private:
       return !(*this == it);
     }
 
+    T operator*() const {
+      return curr_->key;
+    }
+
   private:
     const Node* curr_;
   };
@@ -44,16 +48,16 @@ public:
   SkipSet& operator=(const SkipSet&) = delete;
 
   bool empty() const;
-  bool insert(const T& value);
-  bool erase(const T& value);
+  bool insert(const T& key);
+  bool erase(const T& key);
   Iterator begin() const;
   Iterator end() const;
-  Iterator find(const T& value) const;
-  bool contains(const T& value) const;
+  Iterator find(const T& key) const;
+  bool contains(const T& key) const;
 
 private:
-  Node* create_node(const int level, const T& new_value) const;
-  Node* create_node(const int level, T&& new_value) const;
+  Node* create_node(const int level, const T& new_key) const;
+  Node* create_node(const int level, T&& new_key) const;
   void destroy_node(Node* node) const noexcept;
   int random_height() const;
   

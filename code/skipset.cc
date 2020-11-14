@@ -31,26 +31,26 @@ bool SkipSet<T>::empty() const {
 }
 
 template<class T>
-bool SkipSet<T>::contains(const T& value) const {
-  return find(value) != end();
+bool SkipSet<T>::contains(const T& key) const {
+  return find(key) != end();
 }
 
 template<class T>
-bool SkipSet<T>::insert(const T& value) {
+bool SkipSet<T>::insert(const T& key) {
   Node* preds[kMaxHeight];
   std::memset(preds, 0, kMaxHeight*sizeof(Node*));
 
   auto* node = head_;
   for (int level = height_-1; level >= 0; level--) 
   {
-    while (node->next[level] && node->next[level]->value < value) {
+    while (node->next[level] && node->next[level]->key < key) {
       node = node->next[level];
     }
     preds[level] = node; 
   }
     
   const auto* const find = node->next[0];
-  if (find && find->value == value)
+  if (find && find->key == key)
     return false;
 
   // need insert
@@ -64,7 +64,7 @@ bool SkipSet<T>::insert(const T& value) {
     height_ = new_height;
   }
 
-  auto* const new_node = create_node(new_height, value);
+  auto* const new_node = create_node(new_height, key);
   for (int level = 0; level < new_height; level++) {
     new_node->next[level] = preds[level]->next[level];
     preds[level]->next[level] = new_node;
@@ -75,21 +75,21 @@ bool SkipSet<T>::insert(const T& value) {
 }
 
 template<class T>
-bool SkipSet<T>::erase(const T& value) {
+bool SkipSet<T>::erase(const T& key) {
   Node* preds[kMaxHeight];
   std::memset(preds, 0, sizeof(Node*)*(kMaxHeight));
 
   Node* node = head_;  
   for (int level = height_-1; level >= 0; level--) 
   {
-    while (node->next[level] && node->next[level]->value < value) {
+    while (node->next[level] && node->next[level]->key < key) {
       node = node->next[level];
     }
     preds[level] = node; 
   }
         
   auto* const find = node->next[0];
-  if (!(find && find->value == value))
+  if (!(find && find->key == key))
     return false;
 
   // can be eraaed
@@ -117,17 +117,17 @@ typename sss::SkipSet<T>::Iterator sss::SkipSet<T>::end() const {
 }
 
 template<class T>
-typename sss::SkipSet<T>::Iterator sss::SkipSet<T>::find(const T& value) const {
+typename sss::SkipSet<T>::Iterator sss::SkipSet<T>::find(const T& key) const {
   const Node* node = head_;
   for (int level = height_-1; level >= 0; --level)
   {
-    while (node->next[level] && node->next[level]->value < value) {
+    while (node->next[level] && node->next[level]->key < key) {
       node = node->next[level];
     }
   }
     
   const auto* const find = node->next[0];
-  if (find && find->value == value) {
+  if (find && find->key == key) {
     return Iterator(find);
   } else {
     return end();
@@ -141,12 +141,12 @@ typename SkipSet<T>::Node* SkipSet<T>::create_node(const int level, const T& new
 }
 
 template<class T>
-typename SkipSet<T>::Node* SkipSet<T>::create_node(const int height, T&& new_value) const {
+typename SkipSet<T>::Node* SkipSet<T>::create_node(const int height, T&& new_key) const {
   assert(height > 0 && height <= kMaxHeight);
 
   void* node_mem = std::malloc(sizeof(Node)+(height-1)*sizeof(Node*));
   Node* new_node = static_cast<Node*>(node_mem);
-  new (&new_node->value) T(new_value);
+  new (&new_node->key) T(new_key);
   for (int level = 0; level < height; ++level) {
     new_node->next[level] = nullptr;
   }
@@ -156,7 +156,7 @@ typename SkipSet<T>::Node* SkipSet<T>::create_node(const int height, T&& new_val
 
 template<class T>
 void SkipSet<T>::destroy_node(Node* node) const noexcept {
-  node->value.~T();
+  node->key.~T();
   std::free(node);
 }
 
