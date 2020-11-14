@@ -22,7 +22,7 @@
 
 我们随机输入8百万个随机分布的数，建立skip list树，比较所花的时间。
 
-## Lock Free Set Set
+## Lock Free Skip Set
 
 ### 单线程
 
@@ -50,7 +50,7 @@ g++ -std=c++17 -O2 bench_lfss.cc
 
 NOTE: 
 1. 这里线程数1，表示再启动一个线程去做，和上面的单线程稍微不同，但结果应该差不多
-2. 由于我的Mac是4 Cores并可以超线程一倍，理论上是先当于8个virtual cores，
+2. 由于我的Mac是4 Cores并可以超线程一倍，理论上是相当于8个virtual cores，
 
 结论：
 1. 从上表也可以看出到，当线程数倍数增加时，性能也是倍数增加。符合Lock Free Skip List的预期，也是Lock Free Skip List的优势。
@@ -68,8 +68,8 @@ NOTE:
 
 我们可以看到，如果和Lock Free Skip Set对比的话：
 
-1. Skip Set要好于单线程，因为它没有用到atomic，但基本一个数量级，因为主要时间还是花在main memory的随机访问上了
-2. 如果和LockFreeSkipSet对比，LockFreeSkipSet的性能将随着cpu核数的增加而倍数增加，这也是LockFreeSkipSet的优势
+1. Skip Set要好于单线程下的LockFreeSkipSet，因为它没有用到atomic，但基本一个数量级，因为主要时间还是花在main memory的随机访问上了
+2. 如果和LockFreeSkipSet多线程对比，LockFreeSkipSet的性能将随着cpu核数的增加而倍数增加，这也是LockFreeSkipSet的优势
 
 ### 多个线程多个子树
 
@@ -82,11 +82,11 @@ NOTE:
 结论：
 1. 也是和机器的核数成线性关系，因为也是并发不冲突
 2. 因为没有使用atomic，因此和LockFreeSkipSet最好的情况比，有30%的提高
-3. 但麻烦是多颗小树，要保证各个小树都同样大小，并且没有重叠，是挑战，上层的代码也要复杂很多
+3. 但麻烦是多个小树，要保证各个小树都同样大小，并且没有重叠，是挑战，上层的代码要复杂很多
 
 ## Vector Skip Set
 
-参考 bench_add_random_by_vector_skip_set()。为了简单，我们只考虑一个线程，一个大树。但实际Vector Skip Set同样可以用多个子树组成。
+参考 bench_add_random_by_vector_skip_set()。为了简单，我们只考虑一个线程，一个大树。但实际Vector Skip Set同样可以用多个子树组成，然后让每个线程只负责一个子树，这样就类似SkipSet一样可以享受多核的好处，麻烦就是代码复杂了。
 
 结果：12181049 us
 
@@ -98,7 +98,7 @@ NOTE:
 
 我们还是用8百万个随机数组成的一颗大树，测试各个不同类型的Skip Set的Range Scan性能。
 
-方法是：产生1千多个启动随机数，对于每个启动随机数，开始一次Range Scan，Range的范围是64K（6万多个值得范围）。
+方法是：产生1千多个启动随机数，对于每个启动随机数，开始一次Range Scan，Range的范围是64K（6万多个连续值的范围）。
 
 在扫描过程中，无insert, remove等修改操作影响树。
 
@@ -106,7 +106,7 @@ NOTE:
 
 ## Skip Set
 
-参考：bench_scan_skipset
+参考：bench_scan_skipset()
 
 结果：9386557 us
 
@@ -143,8 +143,9 @@ Vector Skip Set，对于单个树，像Skip Set一样，不支持多线程并发
 3. 但是：VectSkipSet可以反败为胜，因为有以下的优化武器可以用
 
 ## 更多的优化考虑
-1. 重新组织整个树的内存分布，使每个key按照order，在内存上尽量连续，这个可以带来10倍（相比vector而言），或者50倍（相比skipset而言）的性能提升。这个方法：对于几个数都可以采用，但VectorSkipSet和SkipSet会更好做，因为它们在单线程下执行
-2. 如果想让Range Scan针对VectorSkipSet和常规SkipSet也能使用多线程，可以让整个大数分裂称多个小树，每个小树基本高度一致，同时互不重叠。这会让VectorSkipSet和SkipSet享受多核的好处，但是会带来编码的复杂
+1. 重新组织整个树的内存分布，使每个key按照order，在内存上尽量连续，这个可以带来10倍（相比vector而言），或者50倍（相比skipset而言）的性能提升。这个方法：对于几个类型的Skip List都可以采用，但VectorSkipSet和SkipSet会更好做，因为它们在单线程下执行，编码容易很多。
+
+2. 如果想让Range Scan针对VectorSkipSet和常规SkipSet也能使用多线程（多核），可以让整个大数分裂称多个小树，每个小树基本高度一致，同时互不重叠。这会让VectorSkipSet和SkipSet享受多核的好处，但是会带来编码的复杂。
 
 ## 其他因素的影响
 
