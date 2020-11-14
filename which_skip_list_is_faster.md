@@ -15,8 +15,8 @@
 
 | 区分  | Skip Set | Vector Skip Set | Lock Free Skip Set |
 | :--: | :--: | :--: | :--: |
-| 直接支持多线程 | 不 | 不 | 支持 | 
-| 内存布局 | 多级Linked List | 局部使用Vector | 多级Atomic Linked List |
+| 单树直接支持多线程 | 不 | 不 | 支持 | 
+| 内部数据结构 | 多级Linked List | 同左，局部使用Vector | 多级Atomic Linked List |
 
 # 性能分析一：insert建立树
 
