@@ -153,7 +153,7 @@ Vector Skip Set，对于单个树，像Skip Set一样，不支持多线程并发
 
 2. 如果出现了负载过大，导致线程竞争下出现重读更多（你需要进入代码仔细研读才能想象这个场景），这会让LockFreeSkipSet性能下降。但这对于单线程的SkipSet或VectSkipSet，则没有任何影响。
 
-# Lock Free Skip Lisg的一个麻烦
+# Lock Free Skip List的一个麻烦
 
 Lock Free Skip List还有一个麻烦，GC。我们在调用其remove方法后，涉及线程安全，并不能马上delete这个unlinked对象。
 
@@ -167,7 +167,7 @@ Lock Free Skip List还有一个麻烦，GC。我们在调用其remove方法后�
 
 这个相对简单，但问题是，必须在原有的对象上再包一层shared pointer这样类似的wrapper，这一是带来了复杂性，二是性能问题，因为shared pointer里的counter，也是一个atomic primitive。
 
-# 最终解决方案
+# 最终解决方案 ASkipSet
 
 ## 原理
 
