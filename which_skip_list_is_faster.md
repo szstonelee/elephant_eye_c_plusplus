@@ -167,7 +167,7 @@ Lock Free Skip List还有一个麻烦，GC。我们在调用其remove方法后�
 
 这个相对简单，但问题是，必须在原有的对象上再包一层shared pointer这样类似的wrapper，这一是带来了复杂性，二是性能问题，因为shared pointer里的counter，也是一个atomic primitive。
 
-# 最终解决方案 ASkipSet
+# 终极杀人武器 ASkipSet
 
 ## 原理
 
