@@ -56,8 +56,8 @@ public:
   bool contains(const T& key) const;
 
 private:
-  Node* create_node(const int level, const T& new_key) const;
-  Node* create_node(const int level, T&& new_key) const;
+  Node* create_node(const int height, const T& new_key) const;
+  Node* create_node(const int height, T&& new_key) const;
   void destroy_node(Node* node) const noexcept;
   int random_height() const;
   

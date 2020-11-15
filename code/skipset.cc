@@ -6,6 +6,7 @@ namespace sss { // sss is simple skip set or single-threaded skip set
 
 template<class T>
 SkipSet<T>::SkipSet(): head_(nullptr), height_(0), count_(0) {
+    std::srand(std::time(0));
     head_ = create_node(kMaxHeight, T());
 }
 
@@ -98,7 +99,7 @@ bool SkipSet<T>::erase(const T& key) {
       break;
     preds[level]->next[level] = find->next[level];
   }
-  while (height_ > 0 && head_->next[height_] == nullptr)
+  while (height_ > 0 && head_->next[height_-1] == nullptr)
     --height_;
 
   destroy_node(find);
@@ -135,9 +136,9 @@ typename sss::SkipSet<T>::Iterator sss::SkipSet<T>::find(const T& key) const {
 }
 
 template<class T>
-typename SkipSet<T>::Node* SkipSet<T>::create_node(const int level, const T& new_value) const {
-  auto copy = new_value;
-  return create_node(level, std::move(copy));
+typename SkipSet<T>::Node* SkipSet<T>::create_node(const int height, const T& new_key) const {
+  auto copy = new_key;
+  return create_node(height, std::move(copy));
 }
 
 template<class T>

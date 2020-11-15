@@ -153,4 +153,56 @@ Vector Skip Set，对于单个树，像Skip Set一样，不支持多线程并发
 
 2. 如果出现了负载过大，导致线程竞争下出现重读更多（你需要进入代码仔细研读才能想象这个场景），这会让LockFreeSkipSet性能下降。但这对于单线程的SkipSet或VectSkipSet，则没有任何影响。
 
+# Lock Free Skip Lisg的一个麻烦
 
+Lock Free Skip List还有一个麻烦，GC。我们在调用其remove方法后，涉及线程安全，并不能马上delete这个unlinked对象。
+
+有两个解决方案：
+
+1. 类似Java/Golang的GC
+
+采用mark/recycle的方式，问题是对于C++这个太复杂，相当于更新整个runtime环境。
+
+2. 类似Python的Referec Count
+
+这个相对简单，但问题是，必须在原有的对象上再包一层shared pointer这样类似的wrapper，这一是带来了复杂性，二是性能问题，因为shared pointer里的counter，也是一个atomic primitive。
+
+# 最终解决方案
+
+## 原理
+
+参考类ASkipSet的设计，很简单，就是在一定的条件下触发整个内存的整理过程，让node在内存里尽量连续。
+
+触发条件可以分两种方案：
+
+1. 次数触发。即一定的修改次数（insert/remove），进行整理
+2. 时间触发。在一定时间后，进行触发，这个可以在结合1进一步做优化
+
+至于整理，有下面几个方案
+
+1. 局部整理。每次只整理一定数量的nodes，比如最多一千个node，或者只整理最多1ms时间的nodes(Redis有类似的机制)
+2. 整体整理，就是全部来一次大扫除，让所有的nodes按照次序重新建立一遍。这个对于内存有要求，当然可以采用一边new一边delete来降低内存。还有就是latency，如果整个树是百万级以上的，耗时太长。
+
+在ASkipSet只做了个演示，采用最简单的次数触发和部分整理的方案。（做了个小优化，可以根据历史的查询记录优先优化）
+
+所以，ASkipSet里的A的意义可能是：Adjust or Arrange or A-Level。
+
+最后，需要考虑拆分大树变多个小树。这样就可以利用到多核机器。使每个线程只对应独立的一个小树，这样就是单线程解决方案。但算法和数据结构上还有很多挑战，包括：
+
+1. 如何是小树平衡。否则一棵树可能压倒一片深林
+2. 如何Join。有些range scan可能是来自几个小树，需要Join
+3. producer/consumer机制，避免任务传递时线程竞争所导致的context switch而引发的高overload
+
+## Trade Off
+
+ASkipSet的本质是，用一次整理内存重建整个树的代价，带来其后多次Range Scan的提高。
+
+从我的实验来看，请参考：test_askipset.cc
+
+在Jemalloc下，一次全树整理，是一次全扫描的3倍时间。但整理后，全扫描快了近50倍。所以好处是不言而喻的，只是你要选择合适的时机进行整理，同时，如果全整理latency上太贵，可以用Partial整理，我的ASkipSet也支持。
+
+类似Java的GC原理，Java的GC，在对S1和S2内存整理时，是有做compact工作，也是让内存连续了，除了给分配带来好处，也带来了内存连续的效率。但GC也是有代价的，这也是那么多优秀的程序员在不停地优化GC，同时Java的GC又有好几个种类，每个种类下又有好多参数配置。
+
+一切皆是Trade Off。
+
+后面还有一个大树分小树的优化，可以享受多核的好处（同时这也是ARM的趋势），可以让Range Scan提高几百倍，甚至几千倍。
