@@ -10,6 +10,7 @@
 1. 常规Skip List，Class SkipSet，参考 skipset (header & cc file)
 2. 向量Skip List，Class VectSkipSet，参考 vectskipset (header & cc file)
 3. 无锁Skip List，Class LockFreeSkipSet，参考 lock_free_skip_set.h
+4. 重整Skip List，Class ASkipSet，参考 askipset.h
 
 ## 区分
 
