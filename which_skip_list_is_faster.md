@@ -158,7 +158,7 @@ Vector Skip Set，对于单个树，像Skip Set一样，不支持多线程并发
 
 Lock Free Skip List还有一个麻烦，GC。我们在调用其remove方法后，涉及线程安全，并不能马上delete这个unlinked对象。
 
-有两个解决方案：
+有三个解决方案：
 
 1. 类似Java/Golang的GC
 
@@ -167,6 +167,10 @@ Lock Free Skip List还有一个麻烦，GC。我们在调用其remove方法后�
 2. 类似Python的Referec Count
 
 这个相对简单，但问题是，必须在原有的对象上再包一层shared pointer这样类似的wrapper，这一是带来了复杂性，二是性能问题，因为shared pointer里的counter，也是一个atomic primitive。
+
+3. 赌博（乐观）回收方案
+
+这是我的个人猜想。方法就是，给每个回收的对象打上时间标签，然后超过一定时间（比如：分钟级，个人认为秒级足矣，最乐观的话ms级都可以）就回收。因为对于unlinked并进入回收池的对象，其他就在unlinked时才产生的share并发线程不太可能长时间不访问完这个对象(即使有os schedule导致线程切换，一般ms级别也能大概率保证切换回来)。一旦这些并发线程访问完回收对象，滞后就不可能再访问，因此理论上一定时间后，这些回收对象是安全的，可以delete了。
 
 # 终极杀人武器 ASkipSet
 
