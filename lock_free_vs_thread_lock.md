@@ -125,13 +125,13 @@ My suggestion about applications using lock-free algorithm is to measure. You ca
 1. lock-free
 2. single thread
 
- Single thread programming is easy to implement, lock-free is very complex and prone to error.
+ Single thread programming is easy to implement, lock-free is very complex and prone to error. e.g., C++ new or C malloc is not lock-free, and C++ delete can not be called freely.
 
 If the performance of single thread is OK, you can try to optimize it more by using multithread with segments of your data struture.
 
 My another two articles, 
 
-1. [skip list performance with memory layout](skip_list_performance_with_memory.md), 
+1. [skip list performance with memory layout](skip_list_performance_with_memory.md)
 2. [Vector Skip List vs Skip List](vector_skip_list.md)
 
 has the same idea.
