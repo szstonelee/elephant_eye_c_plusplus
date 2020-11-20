@@ -100,7 +100,7 @@ A new same baby is a better man, right?
 
 # 新补充，Lock Free Skip List的数据报告
 
-因为后来又编写了Lock Free Skip Set，我突然有兴趣看一下用atomic的Skip List，在不同的建树内存结构下，是什么样的结构。
+因为后来又编写了Lock Free Skip Set（参考：[Which Skip List is faster](which_skip_list_is_faster.md)），我突然有兴趣看一下用atomic的Skip List，在不同的建树内存结构下，是什么样的结构。
 
 测试用例和上面的一样，请查看bench_lfss.cc里的bench_range_scan_in_random_and_contiguous()
 
@@ -127,4 +127,4 @@ A new same baby is a better man, right?
 ## 结论
 
 1. 单看Lock Free Skip List，内存连续相比内存散列还是要好很多，可以到40倍。这是因为即使用了atomic，但和main memory比起来，main memory上所花的时间更多。
-2. 如果将Lock Free Skip List和Skip List做横向对比，可以发现，Skip Set所花的时间更好，Skip Set的倍数也稍好。这就是atomic和非atomic的区别了。
+2. 如果将Lock Free Skip List和Skip List做横向对比，可以发现，Skip Set所花的时间更好(有两倍左右的差别)，Skip Set的倍数也稍好。这就是atomic和非atomic的区别了。
