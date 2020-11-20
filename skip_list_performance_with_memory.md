@@ -97,3 +97,34 @@ You can try other type like making key as string. When the key size grows and/or
 So one way to optimize the performance of skip list is to periodically reconstrut it totally again or partially if the latency of whole reconstruting is big.
 
 A new same baby is a better man, right?
+
+# 新补充，Lock Free Skip List的数据报告
+
+因为后来又编写了Lock Free Skip Set，我突然有兴趣看一下用atomic的Skip List，在不同的建树内存结构下，是什么样的结构。
+
+测试用例和上面的一样，请查看bench_lfss.cc里的bench_range_scan_in_random_and_contiguous()
+
+结果如下：
+
+## gcc
+
+| random time (ms) | contiguous time (ms) | random/contiguous |
+| :---: | :---: | :---: |
+| 12316 | 2888 | 4.3 |
+
+## gcc O2
+
+| random time (ms) | contiguous time (ms) | random/contiguous |
+| :---: | :---: | :---: |
+| 10134 | 436 | 23.2 |
+
+## gcc O2 with Jemalloc
+
+| random time (ms) | contiguous time (ms) | random/contiguous |
+| :---: | :---: | :---: |
+| 15435 | 417 | 37.0 |
+
+## 结论
+
+1. 单看Lock Free Skip List，内存连续相比内存散列还是要好很多，可以到40倍。这是因为即使用了atomic，但和main memory比起来，main memory上所花的时间更多。
+2. 如果将Lock Free Skip List和Skip List做横向对比，可以发现，Skip Set所花的时间更好，Skip Set的倍数也稍好。这就是atomic和非atomic的区别了。

@@ -128,7 +128,7 @@ void scan_in_contiguous(const int set_sz, const int scope,
 }
 
 void bench_range_scan() {
-  constexpr int set_sz = 1 << 23;   // 8 Million
+  constexpr int set_sz = 8 << 20;   // 8 Million
   constexpr int num_rand = 1000;    
   std::vector<int> scan_starts;
   scan_starts.reserve(num_rand);

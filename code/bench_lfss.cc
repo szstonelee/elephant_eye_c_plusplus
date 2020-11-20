@@ -248,10 +248,78 @@ void bench_scan_cmp() {
   // bench_scan_lockfreeskipset(nums, starts, scan_scope, 16);
 }
 
+void scan_in_random_by_lfss(const int set_sz, const int scope, const std::vector<int>& scan_starts) {
+  std::vector<int> elements(set_sz);
+  for (int i = 0; i < set_sz; ++i)
+    elements[i] = i;
+
+  std::random_device rd;
+  std::mt19937 g(rd());
+  std::shuffle(elements.begin(), elements.end(), g);
+
+  sss::LockFreeSkipSet<int> lfss;
+  for (const auto element : elements) 
+    lfss.add(element);
+
+  int num_total = 0;
+  const auto start_time = std::chrono::steady_clock::now();
+  for (const auto start : scan_starts) {
+    auto it = lfss.locate(start);
+    for (int i = 0; i < scope; ++i) {
+      if (it == lfss.end()) break;
+
+      ++it;
+      const auto key = *it;
+      ++num_total;
+    }
+  }
+  const auto end_time = std::chrono::steady_clock::now();
+  const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+  std::cout << "-- Scan in random memory layout for Lock Free Skip Set, total " << num_total << " in(ms) =  " << duration.count() << '\n';
+}
+
+void scan_in_contiguous_by_lffss(const int set_sz, const int scope, const std::vector<int>& scan_starts) {
+  sss::LockFreeSkipSet<int> lfss;
+  for (int i = 0; i < set_sz; ++i)
+    lfss.add(i);
+
+  int num_total = 0;
+  const auto start_time = std::chrono::steady_clock::now();
+  for (const auto start : scan_starts) {
+    auto it = lfss.locate(start);
+    for (int i = 0; i < scope; ++i) {
+      if (it == lfss.end()) break;
+
+      ++it;
+      const auto key = *it;
+      ++num_total;
+    }
+  }
+  const auto end_time = std::chrono::steady_clock::now();
+  const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+  std::cout << "-- Scan in contigous memory layout for Lock Free Skip Set, total " << num_total << " in(ms) = " << duration.count() << '\n';
+}
+
+void bench_range_scan_in_random_and_contiguous() {
+  constexpr int set_sz = 8 << 20;   // 8 Million
+  constexpr int num_rand = 1000;    
+  std::vector<int> scan_starts;
+  scan_starts.reserve(num_rand);
+  for (int i = 0; i < num_rand; ++i) {
+    scan_starts.push_back(std::rand()%set_sz);
+  }
+
+  constexpr int scope = 1 << 16;    // 64 K
+  scan_in_random_by_lfss(set_sz, scope, scan_starts);
+  scan_in_contiguous_by_lffss(set_sz, scope, scan_starts);
+}
+
 int main() {
   // bench_add();
 
   bench_scan_cmp();
+
+  // bench_range_scan_in_random_and_contiguous();
 
   return 0;
 }
