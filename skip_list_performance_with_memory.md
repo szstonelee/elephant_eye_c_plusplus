@@ -48,18 +48,18 @@ I will try the following test cases in my MacOS.
 g++ skipset.cc bench_skipset.cc -std=c++17 -O0
 ```
 
-| random time (second) | contiguous time (second) | random/contiguous |
+| random time (ms) | contiguous time (ms) | random/contiguous |
 | :---: | :---: | :---: |
-| 9.02868 | 0.677074 | 13.3 |
+| 9028.68 | 677.074 | 13.3 |
 
 ## gcc O2
 ```
 g++ skipset.cc bench_skipset.cc -std=c++17 -O2
 ```
 
-| random time (second) | contiguous time (second) | random/contiguous |
+| random time (ms) | contiguous time (ms) | random/contiguous |
 | :---: | :---: | :---: |
-| 8.61069 | 0.189151 | 45.5 |
+| 8610.69 | 189.151 | 45.5 |
 
 ## gcc O2 with Jemalloc
 You should install Jemalloc first. In Mac, it is 
@@ -84,9 +84,9 @@ NOTE: in Linux, please use ldd tool to check.
 
 The result for Jemalloc is 
 
-| random time (second) | contiguous time (second) | random/contiguous |
+| random time (ms) | contiguous time (ms) | random/contiguous |
 | :---: | :---: | :---: |
-| 8.78797 | 0.162122 | 54.2 |
+| 8787.97 | 162.122 | 54.2 |
 
 # Recap
 
@@ -127,4 +127,4 @@ A new same baby is a better man, right?
 ## 结论
 
 1. 单看Lock Free Skip List，内存连续相比内存散列还是要好很多，可以到40倍。这是因为即使用了atomic，但和main memory比起来，main memory上所花的时间更多。
-2. 如果将Lock Free Skip List和Skip List做横向对比，可以发现，Skip Set所花的时间更好(有两倍左右的差别)，Skip Set的倍数也稍好。这就是atomic和非atomic的区别了。
+2. 如果将Lock Free Skip List和Skip List做横向对比，可以发现，Skip Set所花的时间更好(有近3倍的差别)，Skip Set的倍数也稍好。这就是atomic和非atomic的区别了。
