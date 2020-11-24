@@ -129,13 +129,13 @@ My suggestion about applications using lock-free algorithm is to measure. You ca
 
 If the performance of single thread is OK, you can try to optimize it more by using multithread with segments of your data struture.
 
-My another three articles, 
+My three other articles, 
 
 1. [skip list performance with memory layout](skip_list_performance_with_memory.md)
 2. [Vector Skip List vs Skip List](vector_skip_list.md)
 3. [Which Skip List is faster](which_skip_list_is_faster.md)
 
-has the same idea.
+have the same idea.
 
 
 
