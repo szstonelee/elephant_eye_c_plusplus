@@ -5,3 +5,5 @@
 [Vector Skip List vs Skip List](vector_skip_list.md)
 
 [Which Skip List is faster](which_skip_list_is_faster.md)
+
+[Reference: Modern C++ for C Programmers](https://berthub.eu/articles/posts/c++-1/)
