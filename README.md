@@ -7,3 +7,5 @@
 [Which Skip List is faster](which_skip_list_is_faster.md)
 
 [Reference: Modern C++ for C Programmers](https://berthub.eu/articles/posts/c++-1/)
+
+[Shared pointer with malloc and compile optimaztion](shared_pointer_with_malloc_compile_optimaztion.md)
