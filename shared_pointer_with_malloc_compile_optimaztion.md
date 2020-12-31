@@ -59,6 +59,7 @@ g++ test.cc -std=c++17 -O2
 ## Linux
 
 OS: Ubuntu 20.04.1 LTS
+
 Gcc: (Ubuntu 9.3.0-17ubuntu1~20.04) 9.3.0
 
 | mode | compile O0 | compile O2 |
@@ -70,6 +71,7 @@ Gcc: (Ubuntu 9.3.0-17ubuntu1~20.04) 9.3.0
 ## Mac
 
 OS: 10.15.7 (Catalina)
+
 Clang: 11.0.3 (x86_64-apple-darwin19.6.0)
 
 | mode | compile O0 | compile O2 |
