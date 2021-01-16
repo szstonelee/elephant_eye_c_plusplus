@@ -9,3 +9,6 @@
 [Reference: Modern C++ for C Programmers](https://berthub.eu/articles/posts/c++-1/)
 
 [Shared pointer with malloc and compile optimaztion](shared_pointer_with_malloc_compile_optimaztion.md)
+
+[Reference: 知乎上”C++干货系列“](https://www.zhihu.com/column/c_1267952684679827456)
+
