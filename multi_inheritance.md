@@ -107,6 +107,24 @@ internal memory of only derived (exclude base1 and base2)
 
 然后delete *base1，没有内存泄漏，因为base1的指针地址和derived的指针地址一致。
 
+### Dive deeper问题
+
+加一个更深的问题给大家：如果base里或derived里存在动态资源，然后每个类的destructor都会释放这些动态资源，会如何，比如：
+```
+class AnyForBaseOrDerived {
+  AnyForBaseOrDerived() {
+    dynamic_buf_ = new char[1<<10];
+  }
+  
+  ~AnyForBaseOrDerived() {
+    delete dynamic_buf_;
+  }
+
+private:
+  char* dynamic_buf_ = nullptr;
+};
+```
+
 ## 然后切换到release_from_pointer_no_vritual_2()
 
 ```
