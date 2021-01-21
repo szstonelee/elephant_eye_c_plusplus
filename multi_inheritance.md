@@ -112,10 +112,11 @@ internal memory of only derived (exclude base1 and base2)
 加一个更深的问题给大家：如果base里或derived里存在动态资源，然后每个类的destructor都会释放这些动态资源，会如何，比如：
 ```
 class AnyForBaseOrDerived {
+public:
   AnyForBaseOrDerived() {
     dynamic_buf_ = new char[1<<10];
   }
-  
+
   ~AnyForBaseOrDerived() {
     delete dynamic_buf_;
   }
