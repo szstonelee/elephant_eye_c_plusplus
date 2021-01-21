@@ -52,7 +52,7 @@ int main()
 }
 ```
 
-在test_no_virtual()里，我们分别用不同的release函数。
+在test_no_virtual()里，我们分别用不同的release函数，去delete不同类型的指针，尝试释放资源，然后看内存是否泄漏或出错。
 
 ## 先调用release_from_pointer_no_vritual_1()
 
@@ -65,11 +65,20 @@ void test_no_virtual()
   // release_from_pointer_no_vritual_2(father);
 }
 ```
-这样调用的是：delete pointer of class  NoVirtualBase1
 
-我们编译
+这样调用的是：delete pointer of class NoVirtualBase1
+```
+void release_from_pointer_no_vritual_1(NoVirtualBase1* p)
+{
+  std::cout << "Release no virtual base 1 adress = " << p << '\n';
+  delete p;
+}
+```
+
+我们编译和执行
 ```
 g++ -std=c++17 multi_inheritance_cast.cpp -fsanitize=leak
+./a.out
 ```
 
 ### 执行结果
@@ -85,11 +94,14 @@ Release no virtual base 1 adress = 0x7f15288ff000
 
 ### 分析
 
-在print_address_for_no_virutal_1()里，打印的指针地址和derived pointer是一样的，里面的get_name()，访问的是Base1的name_。
+在print_address_for_no_virutal_1()里，打印的指针地址和derived pointer是一样的，里面的get_name()，访问的是base1的name_。
 
-在rint_address_for_no_virutal_2()里，指针地址和derived pointer是不一样的，因为derived的内存分布是：
-
-internal memory of base1, internal memory of base2, internal memory of only derived (exclude base1 and base2)
+在print_address_for_no_virutal_2()里，指针地址和derived pointer是不一样的，因为derived的内存分布是：
+```
+internal memory of base1,  <- *base1 and *derived
+internal memory of base2,  <- *base2
+internal memory of only derived (exclude base1 and base2)
+```
 
 而get_name()，也是每个指针对应对象（相当于做了static_cast）的get_name()。
 
