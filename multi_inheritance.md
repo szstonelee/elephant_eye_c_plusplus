@@ -38,7 +38,7 @@ private:
 }
 ```
 
-可以看到，每个类都有自己的内部静态数据 name_ 和 buf_。因此，NoVirtualDerived 就包含了三个内存区，i.e., 自己的name_和buf_，以及两个儿子的name_和buf_。
+可以看到，每个类都有自己的内部静态数据 name_ 和 buf_。因此，NoVirtualDerived是个综合体，包含了三个内存区，i.e., 自己的name_和buf_，以及两个儿子的name_和buf_。
 
 然后我们只测试no virtual的情况
 ```
@@ -66,7 +66,7 @@ void test_no_virtual()
 }
 ```
 
-这样调用的是：delete pointer of class NoVirtualBase1
+这样调用的是：delete pointer of class NoVirtualBase1 (我们后面会用delete *base1这样的表达式来表示同样的意义)
 ```
 void release_from_pointer_no_vritual_1(NoVirtualBase1* p)
 {
