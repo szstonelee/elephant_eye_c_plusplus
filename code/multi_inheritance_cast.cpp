@@ -106,13 +106,13 @@ void print_address_for_virutal_1(VirtualBase1* p)
   std::cout << "get name as VirtualBase1 = " << p->get_name() << '\n';
 };
 
-void release_from_pointer_no_vritual_1(NoVirtualBase1* p)
+void release_from_pointer_no_virtual_1(NoVirtualBase1* p)
 {
   std::cout << "Release no virtual base 1 adress = " << p << '\n';
   delete p;
 }
 
-void release_from_pointer_vritual_1(VirtualBase1* p)
+void release_from_pointer_virtual_1(VirtualBase1* p)
 {
   std::cout << "Release virtual base 1 adress = " << p << '\n';
   delete p;
@@ -130,13 +130,13 @@ void print_address_for_virtual_2(VirtualBase2* p)
   std::cout << "get name as VirtualBase2 = " << p->get_name() << '\n';
 }
 
-void release_from_pointer_no_vritual_2(NoVirtualBase2* p)
+void release_from_pointer_no_virtual_2(NoVirtualBase2* p)
 {
   std::cout << "Release no virtual base 2 adress = " << p << '\n';
   delete p;
 }
 
-void release_from_pointer_vritual_2(VirtualBase2* p)
+void release_from_pointer_virtual_2(VirtualBase2* p)
 {
   std::cout << "Release virtual base 2 adress = " << p << '\n';
   delete p;
@@ -153,8 +153,8 @@ void test_no_virtual()
   print_address_for_no_virtual_2(father);
 
   // switch one of the release with g++ -fsanitize=leak to check memory leakage
-  // release_from_pointer_no_vritual_1(father);
-  release_from_pointer_no_vritual_2(father);
+  release_from_pointer_no_virtual_1(father);
+  // release_from_pointer_no_virtual_2(father);
 }
 
 void test_virtual()
@@ -168,15 +168,15 @@ void test_virtual()
   print_address_for_virtual_2(father);
 
   // switch one of the release with g++ -fsanitize=leak to check memory leakage
-  // release_from_pointer_vritual_1(father);
-  release_from_pointer_vritual_2(father);
+  release_from_pointer_virtual_1(father);
+  // release_from_pointer_virtual_2(father);
 }
 
 int main()
 {
-  // test_no_virtual();
+  test_no_virtual();
 
-  test_virtual();
+  // test_virtual();
 
   return 0;
 }
