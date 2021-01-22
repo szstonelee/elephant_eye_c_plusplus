@@ -217,7 +217,9 @@ execute ~VirtualBase1(), this = 0x7fb8721ff000
 
 这就是virtual的特点，函数被override了。
 
-delete *base1，也没有什么问题，没有内存泄漏或报错，而delete *base1，其实执行的是derived的destructor，即此时，derived里的base1的destructor被替换了（override），函数地址是derived的destructor，this指针是derived。
+delete *base1，也没有什么问题，没有内存泄漏或报错，而delete *base1，其实执行的是derived的destructor，即此时，derived里的base1的destructor被替换了（override），函数地址是derived的destructor，this指针是什么，现在还不清晰，但因为base1和derived的指针地址是一样的，所以无所谓。
+
+这个不清晰是故意留下来的谜团，下面的release_from_pointer_virtual_2()将会清晰解释这个谜团。
 
 ## 再切换到release_from_pointer_virtual_2()
 ```
