@@ -126,6 +126,8 @@ private:
 };
 ```
 
+这个问题先不要理会，把下面的看完，再回头想这个问题会更有意思。
+
 ## 然后切换到release_from_pointer_no_virtual_2()
 
 ```
