@@ -12,5 +12,5 @@
 
 [Reference: 知乎上”C++干货系列“](https://www.zhihu.com/column/c_1267952684679827456)
 
-[多层继承以及virtual的原因](multi_inheritance.md)
+[多层继承以及virtual destructor的原因](multi_inheritance.md)
 
