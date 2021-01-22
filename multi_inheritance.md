@@ -266,5 +266,6 @@ execute ~VirtualBase1(), this = 0x7f88c28ff000
 
 这就是destructor是virtual的好处，不会产生内存泄漏或错误。因为任何static_cast后的子类指针，调用delete后，都会从父类的destructor开始执行，而且这个destructor的地址参数，就是父类对象自己。
 
+好了，现在可以去想想那个Dive deeper的问题，或者自己动手写一下程序验证一下。
 
 
