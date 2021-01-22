@@ -253,7 +253,7 @@ execute ~VirtualBase1(), this = 0x7f88c28ff000
 
 但为什么delete *base2时，地址是不同了，i.e., pointer of derived == 0x7f88c28ff000, pointer of base2 == 0x7f88c29ff028，最后的解析顺序和结果完全一样呢？
 
-因为此时derived里面的base2的解析函数destructor也被override了，里面的函数指针地址其实已改为derived的destructor，同时调用参数，那个所谓的this指针，也不是指向base2，而是指向derived，i.e., 此时，复合体中的base1, base2, derived的destructor里面的内容完全一样，包括：那个destructor的参数，i.e., 好像this指针但实际就是个指针参数也一样。
+因为此时derived里面的base2的解析函数destructor也被override了，里面的函数指针地址其实已改为derived的destructor，同时调用参数，那个所谓的this指针，也不是指向base2，而是指向derived，i.e., 此时，复合体中的base1, base2, derived的destructor里面的内容完全一样，包括：那个destructor的参数，i.e., 好像this指针但实际就是个指针参数，也完全是一样的，totally overrided!
 
 所以，我们才能看到，尽管delete *base2的地址不同了，但其后仍然是下面的输出，和delete *base1没有任何区别
 ```
