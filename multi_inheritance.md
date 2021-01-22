@@ -54,21 +54,21 @@ int main()
 
 在test_no_virtual()里，我们分别用不同的release函数，去delete不同类型的指针，尝试释放资源，然后看内存是否泄漏或出错。
 
-## 先调用release_from_pointer_no_vritual_1()
+## 先调用release_from_pointer_no_virtual_1()
 
 首先用
 ```
 void test_no_virtual()
 {  
   ...
-  release_from_pointer_no_vritual_1(father);
-  // release_from_pointer_no_vritual_2(father);
+  release_from_pointer_no_virtual_1(father);
+  // release_from_pointer_no_virtual_2(father);
 }
 ```
 
 这样调用的是：delete pointer of class NoVirtualBase1 (我们后面会用delete *base1这样的表达式来表示同样的意义)
 ```
-void release_from_pointer_no_vritual_1(NoVirtualBase1* p)
+void release_from_pointer_no_virtual_1(NoVirtualBase1* p)
 {
   std::cout << "Release no virtual base 1 adress = " << p << '\n';
   delete p;
@@ -126,14 +126,14 @@ private:
 };
 ```
 
-## 然后切换到release_from_pointer_no_vritual_2()
+## 然后切换到release_from_pointer_no_virtual_2()
 
 ```
 void test_no_virtual()
 {  
   ...
-  // release_from_pointer_no_vritual_1(father);
-  release_from_pointer_no_vritual_2(father);
+  // release_from_pointer_no_virtual_1(father);
+  release_from_pointer_no_virtual_2(father);
 }
 ```
 
@@ -183,13 +183,13 @@ int main()
 }
 ```
 
-## 先调用release_from_pointer_vritual_1()
+## 先调用release_from_pointer_virtual_1()
 ```
 void test_virtual()
 {
   ...
-  release_from_pointer_vritual_1(father);
-  // release_from_pointer_vritual_2(father);
+  release_from_pointer_virtual_1(father);
+  // release_from_pointer_virtual_2(father);
 }
 ```
 
@@ -219,13 +219,13 @@ execute ~VirtualBase1(), this = 0x7fb8721ff000
 
 delete *base1，也没有什么问题，没有内存泄漏或报错，而delete *base1，其实执行的是derived的destructor，即此时，derived里的base1的destructor被替换了（override），函数地址是derived的destructor，this指针是derived。
 
-## 再切换到release_from_pointer_vritual_2()
+## 再切换到release_from_pointer_virtual_2()
 ```
 void test_virtual()
 {
   ...
-  // release_from_pointer_vritual_1(father);
-  release_from_pointer_vritual_2(father);
+  // release_from_pointer_virtual_1(father);
+  release_from_pointer_virtual_2(father);
 }
 ```
 
