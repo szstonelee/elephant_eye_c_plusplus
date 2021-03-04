@@ -1,4 +1,6 @@
-# 下面显示一个动态大小的结构：variant struct in C++
+# variant struct in C++
+
+下面显示一个动态大小的结构在C++里如何实现。
 
 我的编译环境都是64位，X86, Linux
 
