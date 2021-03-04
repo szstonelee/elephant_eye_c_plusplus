@@ -36,7 +36,7 @@ class A{
 
 std::basic_string的内部，是四个8字节的，分别是capacity, size, pointer to heap of char* buffer, pointer of SSO buffer
 
-当然，如果存储的字符串内部比较小，会不分配heap动态内存，而是用这32个字节存储字符串。这个被称之为SSO (Small String Optimaztion), 当然需要size信息，所以不能存储32字节。细节大家上网查一下。
+当然，如果存储的字符串内部比较小，会不分配heap动态内存，而是用这32个字节存储字符串。这个被称之为SSO (Small String Optimaztion), 当然SSO需要size信息，所以不能存储到32字节这么多，各个硬件平台甚至不同的库下SSO都有不同。[细节大家上网查一下1。](https://stackoverflow.com/questions/10315041/meaning-of-acronym-sso-in-the-context-of-stdstring?noredirect=1)， [细节2]（https://stackoverflow.com/questions/21694302/what-are-the-mechanics-of-short-string-optimization-in-libc?noredirect=1）.
 
 [Facebook的Folly string又进一步优化](https://github.com/facebook/folly/blob/master/folly/docs/FBString.md)
 
@@ -53,7 +53,7 @@ class A{
 
 虽然int可以是4字节，但如果作为整个结构，编译器尽量用word（8字节）去对齐，因此整个结构会是8+32字节
 
-## 8字节的正常指针
+## int + 8字节的正常指针
 ```
 class A{
     int a_;
@@ -69,7 +69,7 @@ is_是一个指针，8字节，a_是为了word对齐，也占用8字节，因此
 
 我们可以让is_指向一个分配的内存，所以，is_可以说指向一个动态分配的int数组。
 
-## 不占内存的数组
+## int + 不占内存的数组
 
 ```
 class A{
@@ -82,7 +82,7 @@ class A{
 
 这个很有意思，is_从代码上看，还是一个数组，但不占内存。
 
-## 固定大小的数组
+## int + 固定大小的数组
 
 ```
 class A{
@@ -99,7 +99,7 @@ is_还是一个数组大小为1的数组（和a_地址连在一起），因此�
 
 ## 动态大小的数组，我们的重心：variant struct
 
-##
+## 一个简单例子
 
 ```
 #include <iostream>
@@ -157,7 +157,7 @@ g++ -std=c++17 -fsanitize=leak test.cc
 
 下面我们看一下数组是类型，如何解决这个问题。
 
-### template下的动态数组
+### template下的variant struct
 
 ```
 #include <iostream>
