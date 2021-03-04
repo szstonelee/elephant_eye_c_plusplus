@@ -36,7 +36,7 @@ class A{
 
 std::basic_string的内部，是四个8字节的，分别是capacity, size, pointer to heap of char* buffer, pointer of SSO buffer
 
-当然，如果存储的字符串内部比较小，会不分配heap动态内存，而是用这32个字节存储字符串。这个被称之为SSO (Small String Optimaztion), 当然SSO需要size信息，所以不能存储到32字节这么多，各个硬件平台甚至不同的库下SSO都有不同。[细节大家上网查一下1。](https://stackoverflow.com/questions/10315041/meaning-of-acronym-sso-in-the-context-of-stdstring?noredirect=1)， [细节2]（https://stackoverflow.com/questions/21694302/what-are-the-mechanics-of-short-string-optimization-in-libc?noredirect=1）.
+当然，如果存储的字符串内部比较小，会不分配heap动态内存，而是用这32个字节存储字符串。这个被称之为SSO (Small String Optimaztion), 当然SSO需要size信息，所以不能存储到32字节这么多，各个硬件平台甚至不同的库下SSO都有不同。[细节大家上网查一下1。](https://stackoverflow.com/questions/10315041/meaning-of-acronym-sso-in-the-context-of-stdstring?noredirect=1)， [细节2](https://stackoverflow.com/questions/21694302/what-are-the-mechanics-of-short-string-optimization-in-libc?noredirect=1).
 
 [Facebook的Folly string又进一步优化](https://github.com/facebook/folly/blob/master/folly/docs/FBString.md)
 
@@ -203,7 +203,7 @@ int main() {
 
 clear_variable_struct()，用了template，因为对于var_array_，如果是int数组，是不用析构函数\~T()。但如果是其他类型的结构，里面有动态的内存分配，比如：std::string，则必须调用析构函数\~T()，否则会导致内存泄漏。
 
-还有一个要注意的是：reate_variable_struct()里，还调用了ctor。这是因为malloc()只有内存分配，并没有初始化数组中所有的T对象，即只完成了new 不带地址参数的部分工作。
+还有一个要注意的是：create_variable_struct()里，还调用了ctor。这是因为malloc()只有内存分配，并没有初始化数组中所有的T对象，即只完成了new 不带地址参数的部分工作。
 
 ### 结论
 
@@ -213,6 +213,6 @@ clear_variable_struct()，用了template，因为对于var_array_，如果是int
 
 3. 用clear_varialble_struct()后，再delete这个对象，没有内存泄漏。可以优化这块代码，整合到类A的dtor里
 
-4. 如果数组长度为0，相比指向heap动态分配的一个指针，我们节省了一个指针的大小
+4. 如果数组长度为0，相比指向heap动态分配的一个指针，我们节省了一个指针的8字节
 
 一个使用了variant struct的范例可参考：[Skip List performance with different memory layouts](skip_list_performance_with_memory.md)
