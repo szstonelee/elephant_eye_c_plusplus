@@ -129,7 +129,7 @@ int main() {
 g++ -std=c++17 -fsanitize=leak test.cc
 ```
 
-clear_variable_struct()，用了template，因为对于is_，如果是int数组，是不用析构函数~T()。否则，如果is_是其他类型的结构，里面有动态的内存分配，如果不调用析构函数~T()，会导致内存泄漏。
+clear_variable_struct()，用了template，因为对于is_，如果是int数组，是不用析构函数\~T()。否则，如果is_是其他类型的结构，里面有动态的内存分配，如果不调用析构函数\~T()，会导致内存泄漏。
 
 我们可以看到上面的代码，有下面这些特征：
 
