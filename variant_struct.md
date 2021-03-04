@@ -95,7 +95,7 @@ class A{
 
 is_还是一个数组大小为1的数组（和a_地址连在一起），因此总长度是8字节。一共是2个int，a_和is_[0]
 
-注意：没有padding 4字节了，因为is_并不是一个指针，而是一个本地数组，就贴着a_
+注意：没有padding 4字节了，因为is_并不是一个指针，而是一个内置数组，从物理地址而言，就紧贴着a_
 
 ## 动态大小的数组，我们的重心：variant struct
 
@@ -141,17 +141,21 @@ g++ -std=c++17 -fsanitize=leak test.cc
 
 分析：
 
-我们发现，is_[]现在是一个内存上和sz_紧密相连的长度可变的本地数组，注意：is_并不是再指向另外一块动态内存，就在本地，虽然是在create_variable_struct()里通过malloc分配而来的。
+我们发现，is_[]现在是一个内存上和sz_紧密相连的长度可变的内置数组，注意：is_并不是再指向另外一块动态内存，虽然是在create_variable_struct()里通过malloc分配而来的，但malloc()分配的大小，包括了sz_和这个数组，是它们之和。
 
-如果sizeof(A)，仍然是4字节，结构上，A只认为sz_占了4字节。
+如果sizeof(A)，仍然是4字节，结构上，C++认为A只有sz_占了4字节。这个没毛病，和上面的代码的结果是一致的。
 
-但对于malloc而言，上面的代码是分配了4+4*1024大小的heap块，当然，分配的内存块前面还有描述这个内存块的额外的8个字节。否则free()，或则delete，就不知道改如何通过一个指针值，i.e., heap地址，而回收这块内存。
+但对于malloc而言，上面的代码是分配了4+4*1024大小的heap块，当然，malloc()分配的内存块前面还有描述这个内存块的额外的8个字节。否则free()，或则delete，就不知道如何通过一个指针值，i.e., heap地址，而回收这块内存块。但我们不用理会这个分配的内存块所需要长度信息，i.e. 内存分配的额外的meta data消耗。
 
-大家可能比较好奇，为什么要调用一个什么都不做的clear_variable_struct()。这是为下面的代码准备的，即我们要思考一个问题，如果is_并不是一个简单的int数组，而是一个类型数组，对于类型，我们要考虑其内部可能又动态分配了内存，比如：std::string，就32字节大小，但通过其内部的几个指针，完全可以分配更大内容的内存，从而可以使std::string像buffer一样被使用。
+大家可能比较好奇，为什么要调用一个什么都不做的clear_variable_struct()。这是为下面的代码准备的，即我们要思考一个问题，如果is_并不是一个简单的int数组，而是一个类型数组，对于类型，我们要考虑其内部可能又动态分配了内存，比如：std::string，就32字节大小，但通过其内部的几个指针，完全可以分配更大内容的内存，从而可以使std::string像buffer一样被使用，用几十个G都没有问题。
 
-所以，我们必须要能调用类型数组的每个对象的析构桉树dtor()，让每个对象先解析自己的资源，最后，才能free()掉整个my_variable_a内存块，即delete my_variable_a。换言之：delete my_variable_a由于并没有对数组对象进行清理，上面的int类型，只是恰巧不需要清理，而避免了这个问题。
+所以，我们必须要能调用类型数组的每个对象的析构桉树dtor()，让每个对象先释放自己的资源，最后，才能free()掉整个my_variable_a内存块，i.e., delete my_variable_a，只free了malloc，以及析构了sz_。
 
-下面我们看一下数组是类型，改如何解决这个问题。
+换言之：delete my_variable_a没有对数组对象进行清理，而只是清理了内存块（当然，包括sz_的清理，因为sizeof(A)是知道有sz_这个member data对象的，并且清除sz_的类型）。上面的int类型，只是恰巧不需要清理，i.e., int没有析构函数，而避免了内存泄漏这个问题。
+
+如果我们换掉数组的类型int，而采用其他可能用到其他动态内存的类型，比如用std::string，并让std::string的大小超过SSO的大小（如果SSO， std::string不分配heap了），你可以再试一把，就发现会有内存泄漏。
+
+下面我们看一下数组是类型，如何解决这个问题。
 
 ### template下的动态数组
 
@@ -174,7 +178,7 @@ A<T>* create_variable_struct(int sz) {
     A<T>* p = static_cast<A<T>*>(mem);
     p->sz_ = sz;
     for (int i = 0; i < sz; ++i) {
-        new (&(p->var_array_[i])) T();    // or user-defined dtor
+        new (&(p->var_array_[i])) T();    // or user-defined ctor
     }
     return p;
 }
@@ -199,6 +203,8 @@ int main() {
 
 clear_variable_struct()，用了template，因为对于var_array_，如果是int数组，是不用析构函数\~T()。但如果是其他类型的结构，里面有动态的内存分配，比如：std::string，则必须调用析构函数\~T()，否则会导致内存泄漏。
 
+还有一个要注意的是：reate_variable_struct()里，还调用了ctor。这是因为malloc()只有内存分配，并没有初始化数组中所有的T对象，即只完成了new 不带地址参数的部分工作。
+
 ### 结论
 
 1. 我们使用动态结构，是让其在内存上做了连续，这样对于CPU的cache非常好。
@@ -208,3 +214,5 @@ clear_variable_struct()，用了template，因为对于var_array_，如果是int
 3. 用clear_varialble_struct()后，再delete这个对象，没有内存泄漏。可以优化这块代码，整合到类A的dtor里
 
 4. 如果数组长度为0，相比指向heap动态分配的一个指针，我们节省了一个指针的大小
+
+一个使用了variant struct的范例可参考：[Skip List performance with different memory layouts](skip_list_performance_with_memory.md)
