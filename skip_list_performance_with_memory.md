@@ -11,6 +11,8 @@ From the post, we know:
 2. Optimizing the memory allocation, which uses the fixed allocator, will improve by 30% comparing to optimization 1.
 3. Using sorted input, which makes the skip list tree in contiguous memory layout, will improve by 4 times comparing to optimization 2.
 
+NOTE: if you want to know more about variant struct, [please read this article.](variant_struct.md)
+
 # Range scan
 Now I will compare the performance for range scan of skip list because the range scan feature is the reason we choose skip list over hash map.
 
