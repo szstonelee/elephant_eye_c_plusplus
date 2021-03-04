@@ -15,3 +15,5 @@
 [多层继承以及virtual destructor的原因](multi_inheritance.md)
 
 [引用专家: 深入C++内存管理“](https://blog.csdn.net/zju_fish1996/article/details/108858577) [知乎有相同copy](https://zhuanlan.zhihu.com/p/344377490)
+
+[variant struct in C++](variant_struct.md)
