@@ -22,6 +22,8 @@ int main() {
 
 很显然，int，虽然被包括在class A里，但A的结构大小就是4字节。
 
+Deep in: 如果是空的Class，sizeof()是多大？答案是1字节。
+
 ## std::string的大小
 
 ```
@@ -33,7 +35,8 @@ class A{
 执行结果是: ```32```
 
 std::basic_string的内部，是四个8字节的，分别是capacity, size, pointer to heap of char* buffer, pointer of SSO buffer
-当然，如果string内部比较小，会不分配heap内存，而是用这32个字节存储字符串（当然需要size信息）
+
+当然，如果存储的字符串内部比较小，会不分配heap动态内存，而是用这32个字节存储字符串。这个被称之为SSO (Small String Optimaztion), 当然需要size信息，所以不能存储32字节。细节大家上网查一下。
 
 [Facebook的Folly string又进一步优化](https://github.com/facebook/folly/blob/master/folly/docs/FBString.md)
 
@@ -60,7 +63,10 @@ class A{
 
 执行结果是：```16```
 
-is_是一个指针，8字节，a_是为了对齐，也占用8字节，因此是16字节。
+is_是一个指针，8字节，a_是为了word对齐，也占用8字节，因此是16字节。
+
+理论上，a_和is_是内存连续的，尽管a_和指针is_之间有4字节因为word对齐padding了多于的4字节。
+
 我们可以让is_指向一个分配的内存，所以，is_可以说指向一个动态分配的int数组。
 
 ## 不占内存的数组
@@ -74,7 +80,7 @@ class A{
 
 执行结果是：```4```
 
-这个很有意思，is_还是一个数组（和a_地址连在一起），但不占内存
+这个很有意思，is_从代码上看，还是一个数组，但不占内存。
 
 ## 固定大小的数组
 
@@ -89,9 +95,17 @@ class A{
 
 is_还是一个数组大小为1的数组（和a_地址连在一起），因此总长度是8字节。一共是2个int，a_和is_[0]
 
-## 动态大小的数组
+注意：没有padding 4字节了，因为is_并不是一个指针，而是一个本地数组，就贴着a_
+
+## 动态大小的数组，我们的重心：variant struct
+
+##
 
 ```
+#include <iostream>
+#include <string>
+#include <cassert>
+
 class A{
 public:
     int sz_;
@@ -103,23 +117,17 @@ A* create_variable_struct(int sz) {
     void* mem = std::malloc(sizeof(int) + sz*sizeof(int));
     A* p = static_cast<A*>(mem);
     p->sz_ = sz;
-    for (int i = 0; i < sz; ++i) {
-        p->is_[i] = i;  // if is_是其他类，可以用new (&(p->is_[i])) ctor();来初始化
-    }
     return p;
 }
 
-template <typename T>
 void clear_variable_struct(A* p) {
-    for (int i = 0; i < p->sz_; ++i) {
-        p->is_[i].~T();
-    }
+    // do nothing
 }
 
 int main() {
     A* my_variable_a = create_variable_struct(1024);
     // use my_variable_a
-    clear_variable_struct<int> (my_variable_a);
+    clear_variable_struct (my_variable_a);
     delete my_variable_a;
 
     return 0;
@@ -131,14 +139,72 @@ int main() {
 g++ -std=c++17 -fsanitize=leak test.cc
 ```
 
-clear_variable_struct()，用了template，因为对于is_，如果是int数组，是不用析构函数\~T()。否则，如果is_是其他类型的结构，里面有动态的内存分配，如果不调用析构函数\~T()，会导致内存泄漏。
+分析：
 
-我们可以看到上面的代码，有下面这些特征：
+我们发现，is_[]现在是一个内存上和sz_紧密相连的长度可变的本地数组，注意：is_并不是再指向另外一块动态内存，就在本地，虽然是在create_variable_struct()里通过malloc分配而来的。
 
-1. 从上面的main()可以看出，我们将sz_和is_在内存上做了连续，这样对于CPU的cache非常好。
+如果sizeof(A)，仍然是4字节，结构上，A只认为sz_占了4字节。
 
-2. is_是动态大小的数组，即每个对象可以长度不一样
+但对于malloc而言，上面的代码是分配了4+4*1024大小的heap块，当然，分配的内存块前面还有描述这个内存块的额外的8个字节。否则free()，或则delete，就不知道改如何通过一个指针值，i.e., heap地址，而回收这块内存。
 
-3. 用clear_varialble_struct()后，再delete这个对象，没有内存泄漏。上面的代码，可以编写到类A的dtor里
+大家可能比较好奇，为什么要调用一个什么都不做的clear_variable_struct()。这是为下面的代码准备的，即我们要思考一个问题，如果is_并不是一个简单的int数组，而是一个类型数组，对于类型，我们要考虑其内部可能又动态分配了内存，比如：std::string，就32字节大小，但通过其内部的几个指针，完全可以分配更大内容的内存，从而可以使std::string像buffer一样被使用。
 
-4. 如果数组长度为0，相比指向heap动态分配的一个指针，我们节省了一个指针的大小，更不用说1中的cache friendly
+所以，我们必须要能调用类型数组的每个对象的析构桉树dtor()，让每个对象先解析自己的资源，最后，才能free()掉整个my_variable_a内存块，即delete my_variable_a。换言之：delete my_variable_a由于并没有对数组对象进行清理，上面的int类型，只是恰巧不需要清理，而避免了这个问题。
+
+下面我们看一下数组是类型，改如何解决这个问题。
+
+### template下的动态数组
+
+```
+#include <iostream>
+#include <string>
+#include <cassert>
+
+template <typename T>
+class A{
+public:
+    int sz_;
+    T var_array_[];
+};
+
+template <typename T>
+A<T>* create_variable_struct(int sz) {
+    assert(sz >= 0);
+    void* mem = std::malloc(sizeof(int) + sz*sizeof(T));
+    A<T>* p = static_cast<A<T>*>(mem);
+    p->sz_ = sz;
+    for (int i = 0; i < sz; ++i) {
+        new (&(p->var_array_[i])) T();    // or user-defined dtor
+    }
+    return p;
+}
+
+template <typename T>
+void clear_variable_struct(A<T>* p) {
+    for (int i = 0; i < p->sz_; ++i) {
+        p->var_array_[i].~T();
+    }
+}
+
+int main() {
+    A<int>* my_variable_a = create_variable_struct<int> (1024);
+    // use my_variable_a
+    clear_variable_struct<int> (my_variable_a);
+    delete my_variable_a;
+
+    return 0;
+}
+```
+
+
+clear_variable_struct()，用了template，因为对于var_array_，如果是int数组，是不用析构函数\~T()。但如果是其他类型的结构，里面有动态的内存分配，比如：std::string，则必须调用析构函数\~T()，否则会导致内存泄漏。
+
+### 结论
+
+1. 我们使用动态结构，是让其在内存上做了连续，这样对于CPU的cache非常好。
+
+2. 动态结构里的数组的长度是变长的，即每个对象可以长度不一样
+
+3. 用clear_varialble_struct()后，再delete这个对象，没有内存泄漏。可以优化这块代码，整合到类A的dtor里
+
+4. 如果数组长度为0，相比指向heap动态分配的一个指针，我们节省了一个指针的大小
