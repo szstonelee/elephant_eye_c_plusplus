@@ -69,6 +69,35 @@ is_是一个指针，8字节，a_是为了word对齐，也占用8字节，因此
 
 我们可以让is_指向一个分配的内存，所以，is_可以说指向一个动态分配的int数组。
 
+### 深入探讨1
+```
+class A{
+public:
+    int a_;
+    char* p_;
+    int b_;
+};
+```
+
+这个答案是：```24```
+因为b_也需要word对齐，和上面的一个道理，right?
+
+### 深入探讨2
+```
+class A{
+public:
+    int a_;
+    int b_;
+    char* p_;
+};
+```
+
+这个答案是：```16```
+
+why? ，因为每个int其实只用4字节，放在一起，也不影响word对齐。
+
+NOTE: c++里，member data是按你declare的顺序在内存安排的，同时，也是按这个顺序倍依次instantialized的，对于dtor，次序反之。
+
 ## int + 不占内存的数组
 
 ```
