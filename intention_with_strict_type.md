@@ -154,5 +154,7 @@ struct Year {
 Month::Month(int): Assertion `v >= 1 && v <= 12' failed.
 ```
 
-NOTE: Day, Month, Year需要在构造函数前加入explicit了，否则```MyDate d(10, 20, 2020);```会复活。
+NOTE: 关于explici的位置
+1. Day, Month, Year需要在构造函数前加入explicit了，否则```MyDate d(10, 20, 2020);```会复活。
+2. 在MyDate()前加explicit，而Day, Month, Year前不加explicit，MyDate d(10, 20, 2020); 还是可以编译通过
 
