@@ -10,7 +10,9 @@ class MyDate {
 public:
     MyDate(int d, int m, int y) 
         : day_(d), month_(m), year_(y)
-    {}
+    {
+        // do nothing
+    }
 
     int month() {
         return month_;
