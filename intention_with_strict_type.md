@@ -89,7 +89,9 @@ class MyDate {
 public:
     MyDate(Day d, Month m, Year y) 
         : day_(d), month_(m), year_(y)
-    {}
+    {
+        // do nothing
+    }
 
     Month month() const {
         return month_;
