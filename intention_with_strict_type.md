@@ -128,38 +128,28 @@ MyDate d(10, 20, 2020);
 #include <cassert>
 
 struct Day {
-    Day(int v) {
+    explicit Day(int v) {
         assert(v >= 1 && v <= 31);
     }
     int val;
 };
 
 struct Month {
-    Month(int v) {
+    explicit Month(int v) {
         assert(v >= 1 && v <= 12);
     }
     int val;
 };
 
 struct Year {
-    Year(int v) {
+    explicit Year(int v) {
         assert(v > 0);
     }
     int val;
 };
-
-class MyDate {
-    explicit MyDate(Day d, Month m, Year y) 
-        : day_(d), month_(m), year_(y)
-    {
-      // do nothing
-    }
-  ...
-}
 ```
 
 这时，你如果输入是```MyDate d(Day{10}, Month{20}, Year{2020});```，会在执行时，输出assert错误```Month::Month(int): Assertion `v >= 1 && v <= 12' failed.```
 
-NOTE: 这时需要在构造函数MyDate()前，加入explicit了，否则```MyDate d(10, 20, 2020);```会复活。
-
+NOTE: Day, Month, Year需要在构造函数前加入explicit了，否则```MyDate d(10, 20, 2020);```会复活。
 
