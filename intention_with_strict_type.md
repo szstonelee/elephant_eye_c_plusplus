@@ -5,12 +5,11 @@
 
 ```
 #include <iostream>
-#include <string>
 
 class MyDate {
 public:
-    MyDate(int _d, int _m, int _y) 
-        : day_(_d), month_(_m), year_(_y)
+    MyDate(int d, int m, int y) 
+        : day_(d), month_(m), year_(y)
     {}
 
     int month() {
@@ -50,7 +49,9 @@ class MyDate {
 public:
     MyDate(Day d, Month m, Year y) 
         : day_(d), month_(m), year_(y)
-    {}
+    {
+      // do nothing
+    }
 
     Month month() const {
         return month_;
@@ -86,8 +87,8 @@ struct Year {int val;};
 
 class MyDate {
 public:
-    MyDate(Day _d, Month _m, Year _y) 
-        : day_(_d), month_(_m), year_(_y)
+    MyDate(Day d, Month m, Year y) 
+        : day_(d), month_(m), year_(y)
     {}
 
     Month month() const {
@@ -121,7 +122,7 @@ MyDate d(10, 20, 2020);
 
 当上面这个还是允许我们建造MyDatae时，硬用Month{20}
 
-下面的代码可以做进一步的校验
+下面的代码可以用assert做进一步的校验
 
 ```
 #include <cassert>
@@ -148,9 +149,11 @@ struct Year {
 };
 
 class MyDate {
-    explicit MyDate(Day _d, Month _m, Year _y) 
-        : day_(_d), month_(_m), year_(_y)
-    {}
+    explicit MyDate(Day d, Month m, Year y) 
+        : day_(d), month_(m), year_(y)
+    {
+      // do nothing
+    }
   ...
 }
 ```
