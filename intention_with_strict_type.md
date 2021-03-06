@@ -149,7 +149,10 @@ struct Year {
 };
 ```
 
-这时，你如果输入是```MyDate d(Day{10}, Month{20}, Year{2020});```，会在执行时，输出assert错误```Month::Month(int): Assertion `v >= 1 && v <= 12' failed.```
+这时，你如果输入是```MyDate d(Day{10}, Month{20}, Year{2020});```，会在执行时，输出assert错误
+```
+Month::Month(int): Assertion `v >= 1 && v <= 12' failed.
+```
 
 NOTE: Day, Month, Year需要在构造函数前加入explicit了，否则```MyDate d(10, 20, 2020);```会复活。
 
