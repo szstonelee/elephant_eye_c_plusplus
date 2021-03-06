@@ -17,3 +17,5 @@
 [引用专家: 深入C++内存管理“](https://blog.csdn.net/zju_fish1996/article/details/108858577) [知乎有相同copy](https://zhuanlan.zhihu.com/p/344377490)
 
 [variant struct in C++](variant_struct.md)
+
+[intention with strict type](intention_with_strict_type.md)
