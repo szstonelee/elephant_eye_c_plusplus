@@ -5,7 +5,7 @@
 #include <cassert>
 #include <limits>
 
-constexpr int kVectorNum = 1000000;
+constexpr int kVectorNum = 1000;
 constexpr int kThreadNum = 2;       // NOTE: 一定是2，如果要测试alignment的话
 
 void foo(const int id, const std::vector<int>& v, 
@@ -86,7 +86,7 @@ void foo_with_align(const int id, const std::vector<int>& v,
 
 int main() 
 {
-    auto values = init_values(kVectorNum);
+    const auto values = init_values(kVectorNum);
 
     {   // 代码块 1, using parallel thread
         std::vector<long> sums(kThreadNum, 0LL);
