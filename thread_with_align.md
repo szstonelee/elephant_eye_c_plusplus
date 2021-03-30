@@ -1,10 +1,12 @@
-# thread并发和内存memory alignment的关系
+# thread并发，内存memory alignment和CPU cache line冲突
 
 ## 引子
 
 在知乎上上看到一个帖子，[并发吹剑录（三）：『伪共享』凌乱记](https://zhuanlan.zhihu.com/p/359679079)
 
-总体观点我是认同的，但是我觉得文中的时间测量有点问题，就是时间包含了线程启动和销毁，这个并不可忽视。
+总体观点我是认同的，就是：thread并发时，你让thread访问不同的内存地址，希望提升性能。但这分开的内存，可能在一个cache line上，导致在CPU总线上有冲突（必须有写操作），从而降低性能。
+
+但是我觉得文中的时间测量有点问题，就是时间包含了线程启动和销毁，这个并不可忽视。
 
 所以，我源自作者的代码，但做了一点修正，就是在latency计算上，不考虑thread的影响，而且假设thread是几乎同时启动的而且机器至少2核以上（我的机器保证如此），具体可参考[代码](code/thread_with_align.cc)
 
@@ -16,9 +18,9 @@ g++ -stc=c++17 -pthread thread_with_align.cc
 
 我们分析三种模式的情况：
 
-1. 2个thread，但是2个thread写入的sums，是没有alignment的，即会发生CPU总线冲突
-2. 单线程（main线程）顺序执行，下面称之为serial
-3. 2个thread，但2个thread写入的AlignSums，是通过cache line（64字节）分开的，没有CPU总线冲突
+1. 两个thread，但是2个thread写入的sums，是没有alignment的，即会发生CPU总线冲突
+2. 单个线程（main线程）顺序执行，下面称之为serial
+3. 两个thread，但block3中的两个thread写入的AlignSums，是通过cache line（64字节）分开的，没有CPU总线冲突
 
 ## 测试结果
 
@@ -26,9 +28,9 @@ g++ -stc=c++17 -pthread thread_with_align.cc
 
 ### kVectorNum = 1'000
 
-大部分情况下，都是thread小于serial，至于thread，有没有alignment，一般情况下，都是alignment稍好一点，但有一次alignment时，cost超过serial
+大部分情况下，都是thread小于serial，至于thread，有没有alignment，差别不大，一般情况下，都是alignment稍好一点，但有一次alignment时，cost超过serial
 
-分析：由于循环量很少，同时values占内存不大，所以，这时，thread比较有效。
+分析：由于循环量很少，同时values占内存不大，所以，这时，thread比较有效，但thread中，是否是alignment to cache line，影响不起决定性作用。
 
 ### kVectorNum = 10'000
 
@@ -38,12 +40,12 @@ g++ -stc=c++17 -pthread thread_with_align.cc
 
 ### kVectorNum = 100'000
 
-thread with align最小，thread的ccost开始超过serial了
+thread with align最小，thread的cost开始超过serial了
 
-分析：这时明显CPU总线冲突的影响更大，由于循环数以及vlaues的加大(value需要占用更多的CPU cache，cache1->cache2->cache3)
+分析：这时明显CPU总线冲突的影响更大，超过了并发的好处。原因是：循环数以及vlaues的加大(value需要占用更多的CPU cache，cache1->cache2->cache3)
 
 ### kVectorNum = 1'000'000
 
 结果和kVectorNum = 100'000类似。分析也一样
 
-有兴趣的人可以测试，由于每个人的机器不同，cache的级数和大小，以及其他方面的影响（比如：循环数少时，内存和cache的临时作用，以及OS中其他process的影响，会更明显），我相信数据结果和我上面的可能有不同，但总趋势应该是一致的。
+有兴趣的人可以测试，由于每个人的机器不同，cache的级数和大小也不同，以及其他方面的影响（比如：循环数少时，内存和cache的临时作用，以及OS中其他process的影响，会更明显），我相信数据结果和我上面的可能有不同，但总趋势应该是一致的。

@@ -115,7 +115,7 @@ int main()
     }
 
     {   // 代码块 3, using parallel thread and align
-        // note: 由于vector采用动态分配，所以alignof() in vector是无效的
+        // note: 由于vector采用动态分配，所以alignas() in vector是无效的
         AlignSums sums;
         std::vector<int> latencies(kThreadNum, 0);
         std::vector<std::thread> tds;
