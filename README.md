@@ -19,3 +19,5 @@
 [variant struct in C++](variant_struct.md)
 
 [intention with strict type](intention_with_strict_type.md)
+
+[thread with alignment in CPU bus confliction](thread_with_align.md)
