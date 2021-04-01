@@ -23,7 +23,7 @@ public:
 };
 ```
 
-这个class 在创建时打印创建ctor (construtor) 消息。
+这个class 在创建时打印创建ctor (construtor) 消息。相应地，destructor方法，我们上面没有写的那个~MyClass()，被称之为dtor。
 
 ## 最简单的main()
 
@@ -68,7 +68,11 @@ MyClass default ctor
 
 为了避免内存泄漏，我们可以用smart pointer，即让一个智能对象，自己作为auto storage duration，同时智能对象里面的memer data放着这个指向dynamic MyClass的指针（相当于做了一层包裹wrap），然后智能对象的destructor method里，i.e., dtor，再去delete这个dynamic对象，从而保证内存不泄漏。
 
-这是因为：一个stack frame销毁时，C++会保证里面所有的auto storage duration objects，都会调用dtor。
+这是因为：一个stack frame销毁时，C++会保证里面所有的已生成的auto storage duration objects，都会调用dtor。所以，发生了exception，也可以通过这个机制保证不会发生资源泄漏。因此处理exception时，在没有找到exception handler时，statck frame还是会依次销毁(stack unwinding)。
+
+如果发生exception时，还没有到exception handler，再发生exception会怎样，这时，会调用std::terminate()，停掉你的程序。
+
+所以，C++希望你能保证你所有对象的dtor不要发生exception。而一般而言，dtor只是做回收资源的事，不应该再发生exception。
 
 ## 加入函数
 
