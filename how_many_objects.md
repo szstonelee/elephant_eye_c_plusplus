@@ -41,7 +41,7 @@ int main()
 MyClass default ctor
 ```
 
-很简单，在main()里，生成了对象a，是一个MyClass，而且是调用的default ctor生成的。这个对象a位于执行主线程main()的堆栈上，storage duration是auto，即main()执行完，会自动销毁这个对象a（当退出和销毁当前的stack frame时），不需要我们做什么。
+很简单，在main()里，生成了对象a，是一个MyClass类型，而且是调用的default ctor生成的。这个对象a位于执行主线程main()的堆栈上，storage duration是auto，即main()执行完，会自动销毁这个对象a（当退出和销毁当前的stack frame时），不需要我们做什么。
 
 ## heap创建对象
 
@@ -64,7 +64,7 @@ MyClass default ctor
 
 和上面稍微不同的是，对象MyClass在heap上，storage duration是dynamic，所以需要通过写代码主动地删除delete main()堆栈上的另外一个对象b，来达到回收内存资源。。
 
-你可以理解成```delete b```，可以想象成，相当于call了一个函数，delete_something_by_argument_of(b)，b是一个argument，在delete_something_by_argument_of()中，才真正实现了dynamic object的回收和销毁。我们再看，b自己本身是一个auto storage object，一个简单的指针，在64位OS下就是一个8字节，在main()退出后，销毁其stack frame时被销毁。
+对于``delete b```，可以想象成，相当于call了一个函数，delete_something_by_argument_of(b)，b是一个argument，在delete_something_by_argument_of()中，才真正实现了dynamic object的回收和销毁。我们再看，b自己本身是一个auto storage object，一个简单的指针，在64位OS下就是一个8字节，在main()退出后，销毁其stack frame时被销毁。
 
 注意；销毁b时，并不自动销毁其所指的heap对象，即没有调用那个想象中的delete_something_by_argument_of(b)。
 
@@ -78,7 +78,7 @@ MyClass default ctor
 
 所以，C++希望你能保证你所有对象的dtor不要发生exception。而一般而言，dtor只是做回收资源的事，不应该再发生exception。
 
-## 加入函数foo
+## 加入函数function -- foo
 
 ```
 void foo(MyClass v)
@@ -104,7 +104,7 @@ MyClass copy ctor
 
 我们知道，函数调用，其argument是pass by value，所以，两个MyClass对象，一个在main()里的a，一个在foo()上的v，分别通过default和copy构造方法ctor创建出来的。
 
-## 函数传入引用 
+## 函数function传入引用 
 ```
 void foo(MyClass& v)
 { 
@@ -126,7 +126,7 @@ int main()
 MyClass default ctor
 ```
 
-只有一次MyClass对象生成，那么函数foo()里的argument，同样是一个pass by value，不过值是reference，而referece其机理和底层仍旧是一个指针（但不允许nullptr，同时reference变量自己，不允许改变，是个const，注意：const是限制reference自己本身，而不是限制其所指向的MyClass这个对象，你可以将reference看成一个类指针的对象，其所指的才是MyClass对象），指向某个对象，这次，指向的是main() stack frame上的对象a。所以，只有一个default ctor。
+只有一次MyClass对象生成，那么函数foo()里的argument，同样是一个pass by value，不过值是reference，而referece其机理和底层仍旧是一个指针（但不允许nullptr，同时reference变量自己，不允许改变，是个const，注意：const是限制reference自己本身，而不是限制其所指向的MyClass这个对象，你可以将reference看成一个类指针的对象，其所指的才是MyClass对象），指向某个MyClass对象，这次，指向的是main() stack frame上的对象a。所以，只有一个default ctor。
 
 ## temporary对象作为argument
 
@@ -202,7 +202,7 @@ int main()
 MyClass default ctor
 ```
 
-只有一个对象产生，即那个MyClass()生成的prvalue（temporary object），然后被v这个const reference对象指着。
+只有一个对象产生，即那个MyClass()生成的prvalue（temporary object），然后被v这个const reference对象指着（或者同义词，引用着）。
 
 ## reference of rvalue
 
@@ -228,7 +228,7 @@ MyClass default ctor
 ```
 只生成一个MyClass对象，和上面那个“修正上面的错误”类似。
 
-那这两种情况究竟有什么不同呢？可以参考下面的代码
+那这两种情况究竟有什么内在的不同呢？可以参考下面的代码
 
 ```
 void foo(const MyClass& v) 
@@ -321,7 +321,7 @@ MyClass copy ctor
 
 第二个copy ctor，是调用foo()时，pass by value，产生一个copy object，i.e., v
 
-第三个copy ctor，是mys.push_back(v)时，mys接受的是一个引用reference of v。请参考[std::vector::push_back()](https://en.cppreference.com/w/cpp/container/vector/push_back)。然后根据这个引用，生成了一个copy 对象，再存入vector中。
+第三个copy ctor，是mys.push_back(v)时，mys接受的是一个引用reference of v。请参考[std::vector::push_back()](https://en.cppreference.com/w/cpp/container/vector/push_back)。然后根据这个引用，再生成了一个copy 对象，然后将之存入vector中。所以，vector以后操作的对象，和v一点关系都没有，v并不在vector里。
 
 ## vector上加点小变化
 
@@ -349,7 +349,7 @@ MyClass copy ctor
 
 第一个default ctor，是MyClass a；创建的
 
-第二个MyClass copy ctor，是mys.push_back(v), 这个v是个引用，所以vector.push_back()时，必须copy一个，然后放入自己的container。
+第二个MyClass copy ctor，是mys.push_back(v), 这个v是个引用，所以vector.push_back()时，必须copy一个，然后放入自己的container。同样地，vector里存放的对象和v没有关系，是两个对象。
 
 ## 再用temporary object试试vector
 ```
@@ -392,7 +392,9 @@ int main()
 MyClass default ctor
 MyClass move ctor
 ```
-这时，std::vector::push_back()，调用的是rvalue reference，因为MyClass()此时是prvalue。
+这时，std::vector::push_back()，调用的是rvalue reference，因为MyClass()此时是prvalue。此时，仍然是两个MyClass对象，一个是那个temporary MyClass对象，其次是vector里存放的MyClass对象，但是，在vector里建造时，用的是move ctor，所以，没有很大的资源消耗。
+
+可以想象一下，如果MyClass里放了一个大数据，比如1百万byte的内存资源，那么，虽然生成了两个MyClass对象，但由于move ctor，这个1百万byte的内存资源，只有一次，被move到vector里。原来的被move的对象，这个1百万字节的资源，消失了，所以，我们不应该再继续用原来那个MyClass对象（被moved）。不过，原来的被moved的对象，本身是一个temorary对象，i.e., 一个prvalue，所以从代码而言，没有任何风险。
 
 ## 下面权当练习
 ```
@@ -421,4 +423,4 @@ MyClass copy ctor
 
 ## 结论
 
-C++的对象机制相当复杂，想理顺到底有多少个对象生成，并不容易，但至少你可以完全通过代码控制实现所有的可能性，这也是C++的思想，给你所有工具，让你自由犯错(或成功)。
+C++的对象机制相当复杂，理顺到底有多少个对象生成，并不容易，但至少你可以完全通过代码控制实现所有的可能性，这也是C++的哲学，给你所有工具，让你自由犯错(或成功)。
