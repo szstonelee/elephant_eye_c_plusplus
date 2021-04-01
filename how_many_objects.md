@@ -124,7 +124,7 @@ MyClass default ctor
 
 只有一次MyClass对象生成，那么函数foo()里的argument，同样是一个pass by value，不过值是reference，而referece其机理和底层仍旧是一个指针（但不允许nullptr，同时reference变量自己，不允许改变，是个const，注意：const是限制reference自己本身，而不是限制其所指向的MyClass这个对象，你可以将reference看成一个类指针的对象，其所指的才是MyClass对象），指向某个对象，这次，指向的是main() stack frame上的对象a。所以，只有一个default ctor。
 
-## rvalue对象作为argument
+## temporary对象作为argument
 
 ```
 void foo(MyClass v)
@@ -140,15 +140,17 @@ int main()
 }
 ```
 
-如上，我们在main()里调用foo()，在foo里直接生成一个对象MyClass()，结果是
+如上，我们在main()里调用foo()，在foo里直接生成一个temporary对象MyClass()，结果是
 
 ```
 MyClass default ctor
 ```
 
-只生成了一个对象MyClass，就在foo()里。
+只生成了一个temporary对象MyClass，就在foo()里。
 
-## 我们尝试一下引用作为parameter
+注意：temporary对象也是rvalue，即prvalue。
+
+## 我们尝试一下引用reference作为parameter
 
 ```
 void foo(MyClass& v)
