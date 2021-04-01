@@ -62,11 +62,11 @@ int main()
 MyClass default ctor
 ```
 
-和上面稍微不同的是，对象MyClass在heap上，storage duration是dynamic，所以需要通过删除delete堆栈上的另外一个对象b，b是一个指针对象，来达到回收内存资源。
+和上面稍微不同的是，对象MyClass在heap上，storage duration是dynamic，所以需要通过写代码主动地删除delete main()堆栈上的另外一个对象b（你可以理解成为delete_something_by_argument_of(b)，即b是一个argument），b对象自己只是一个指针(64位OS下8字节)，来达到回收内存资源。b自己本身是一个auto storage object，在main()退出后，销毁其stack frame时被销毁(但注意；销毁b时，并不销毁其所指的heap对象，因为b就是一个指针而已)。
 
 当然，如果编译器优化，可以将b存储在register上，但MyClass依然是dynamic storage duration，必须我们人工干预删除，否则会有内存泄漏。
 
-为了避免内存泄漏，我们可以用smart pointer，即让一个智能对象，自己作为auto storage duration，同时智能对象里面的memer data放着这个指向dynamic MyClass的指针（相当于做了一层包裹wrap），然后智能对象的destructor method里，i.e., dtor，再去delete这个dynamic对象，从而保证内存不泄漏。
+为了避免内存泄漏，我们可以用smart pointer，即让一个智能对象，自己作为auto storage duration，同时智能对象里面的memer data放着这个指向dynamic MyClass的指针（相当于做了一层包裹wrap），然后智能对象的destructor method里，i.e., dtor，再去delete这个dynamic storage对象，从而保证内存不泄漏。
 
 这是因为：一个stack frame销毁时，C++会保证里面所有的已生成的auto storage duration objects，都会调用dtor。所以，发生了exception，也可以通过这个机制保证不会发生资源泄漏。因此处理exception时，在没有找到exception handler时，statck frame还是会依次销毁(stack unwinding)。
 
