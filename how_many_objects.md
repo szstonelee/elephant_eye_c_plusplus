@@ -74,7 +74,7 @@ MyClass default ctor
 
 所以，C++希望你能保证你所有对象的dtor不要发生exception。而一般而言，dtor只是做回收资源的事，不应该再发生exception。
 
-## 加入函数
+## 加入函数foo
 
 ```
 void foo(MyClass v)
