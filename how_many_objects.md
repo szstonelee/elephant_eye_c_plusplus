@@ -64,7 +64,7 @@ MyClass default ctor
 
 和上面稍微不同的是，对象MyClass在heap上，storage duration是dynamic，所以需要通过写代码主动地删除delete main()堆栈上的另外一个对象b，来达到回收内存资源。。
 
-对于``delete b```，可以想象成，相当于call了一个函数，delete_something_by_argument_of(b)，b是一个argument，在delete_something_by_argument_of()中，才真正实现了dynamic object的回收和销毁。我们再看，b自己本身是一个auto storage object，一个简单的指针，在64位OS下就是一个8字节，在main()退出后，销毁其stack frame时被销毁。
+对于``delete b```，可以想象成，相当于call了一个函数，delete_something_by_argument_of(b)，b是一个argument，在delete_something_by_argument_of()中，才真正实现了dynamic object的回收和销毁。我们再看，b自己本身是一个auto storage object，一个简单的指针，在64位OS下就是一个8字节，在main()退出后，销毁stack frame时同时自动auto销毁b。
 
 注意；销毁b时，并不自动销毁其所指的heap对象，即没有调用那个想象中的delete_something_by_argument_of(b)。
 
@@ -226,7 +226,7 @@ int main()
 ```
 MyClass default ctor
 ```
-只生成一个MyClass对象，和上面那个“修正上面的错误”类似。
+只生成一个MyClass对象，和上面那个“修正上面的错误”类似。只是上面是lvalue reference，而这里是rvalue reference。
 
 那这两种情况究竟有什么内在的不同呢？可以参考下面的代码
 
@@ -285,13 +285,13 @@ int main()
 }
 ```
 
-用了xvalue, i.e., std::move()，编译通过，执行结果如下：
+用了xvalue, i.e., std::move()的作用，编译通过，执行结果如下：
 ```
 MyClass default ctor
 ```
-只有一个MyClass对象生成。
+只有一个MyClass对象生成，在main()里，是一个lvalue，然后std::move()将之变为xvalue传给foo()。这时，你应该记住，在main()里的std::move(a)后，不应该继续使用a了，因为它被move了，即它里面的资源都被foo()用掉了，现在的a是个空壳，不应该被继续使用。
 
-## 再复杂一点，引入STL里的container -- std::vecotr
+## 再复杂一点，引入STL里的container -- std::vector
 ```
 void foo(MyClass v)
 { 
@@ -321,7 +321,7 @@ MyClass copy ctor
 
 第二个copy ctor，是调用foo()时，pass by value，产生一个copy object，i.e., v
 
-第三个copy ctor，是mys.push_back(v)时，mys接受的是一个引用reference of v。请参考[std::vector::push_back()](https://en.cppreference.com/w/cpp/container/vector/push_back)。然后根据这个引用，再生成了一个copy 对象，然后将之存入vector中。所以，vector以后操作的对象，和v一点关系都没有，v并不在vector里。
+第三个copy ctor，是mys.push_back(v)时，mys.push_back()接受的参数parameter是一个引用reference of v。请参考[std::vector::push_back()](https://en.cppreference.com/w/cpp/container/vector/push_back)。然后根据这个引用，再生成了一个copy 对象，然后将之存入vector中。所以，vector以后操作的对象，和v一点关系都没有，v并不在vector里。
 
 ## vector上加点小变化
 
@@ -394,7 +394,7 @@ MyClass move ctor
 ```
 这时，std::vector::push_back()，调用的是rvalue reference，因为MyClass()此时是prvalue。此时，仍然是两个MyClass对象，一个是那个temporary MyClass对象，其次是vector里存放的MyClass对象，但是，在vector里建造时，用的是move ctor，所以，没有很大的资源消耗。
 
-可以想象一下，如果MyClass里放了一个大数据，比如1百万byte的内存资源，那么，虽然生成了两个MyClass对象，但由于move ctor，这个1百万byte的内存资源，只有一次，被move到vector里。原来的被move的对象，这个1百万字节的资源，消失了，所以，我们不应该再继续用原来那个MyClass对象（被moved）。不过，原来的被moved的对象，本身是一个temorary对象，i.e., 一个prvalue，所以从代码而言，没有任何风险。
+可以想象一下，如果MyClass里放了一个大数据，比如1百万byte的内存资源，那么，虽然生成了两个MyClass对象，但由于move ctor，这个1百万byte的内存资源，只有一个，被move到vector里。原来的被move的对象，这个1百万字节的资源，消失了，所以，我们不应该再继续用原来那个MyClass对象（被moved）。不过，原来的被moved的对象，本身是一个temporary对象，i.e., 一个prvalue，所以从代码而言，没有任何风险。
 
 ## 下面权当练习
 ```
