@@ -23,7 +23,7 @@ public:
 };
 ```
 
-这个class 在创建时打印创建ctor (construtor) 消息。相应地，destructor方法，我们上面没有写的那个~MyClass()，被称之为dtor。
+这个class 在创建时打印创建ctor (construtor) 消息。相应地，destructor方法，我们上面没有写的那个~MyClass()，但C++编译器会为你生成这个default析构方法，被称之为dtor。
 
 ## 最简单的main()
 
@@ -41,7 +41,7 @@ int main()
 MyClass default ctor
 ```
 
-很简单，在main()里，生成了对象a，是一个MyClass，而且是调用的default ctor生成的。这个对象a位于执行线程main()，即主线程，的堆栈上，storage duration是auto，即main()执行完，会自动销毁这个对象a（当退出当前的stack frame时），不需要我们做什么。
+很简单，在main()里，生成了对象a，是一个MyClass，而且是调用的default ctor生成的。这个对象a位于执行主线程main()的堆栈上，storage duration是auto，即main()执行完，会自动销毁这个对象a（当退出和销毁当前的stack frame时），不需要我们做什么。
 
 ## heap创建对象
 
