@@ -21,3 +21,5 @@
 [intention with strict type](intention_with_strict_type.md)
 
 [thread with alignment in CPU bus confliction](thread_with_align.md)
+
+[到底有多少个Object生成呢？](how_many_objects.md)
