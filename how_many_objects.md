@@ -287,7 +287,7 @@ MyClass default ctor
 ```
 只有一个MyClass对象生成。
 
-## 在复杂一点，引入STL里的container -- vecotr
+## 再复杂一点，引入STL里的container -- std::vecotr
 ```
 void foo(MyClass v)
 { 
@@ -315,9 +315,9 @@ MyClass copy ctor
 
 第一个default ctor，是MyClass a生成的。
 
-第二个copy ctor，是调用foo()时，pass by value，产生一个copy
+第二个copy ctor，是调用foo()时，pass by value，产生一个copy object，i.e., v
 
-第三个copy ctor，是mys.push_back(v)时，mys接受的是一个引用reference of v，然后根据这个引用，生成了一个copy 对象，再存入vector中。
+第三个copy ctor，是mys.push_back(v)时，mys接受的是一个引用reference of v。请参考[std::vector::push_back()](https://en.cppreference.com/w/cpp/container/vector/push_back)。然后根据这个引用，生成了一个copy 对象，再存入vector中。
 
 ## vector上加点小变化
 
@@ -371,7 +371,24 @@ MyClass copy ctor
 
 首先，到foo()里面时，只生成一个MyClass对象，即那个临时的MyClass()对象，是default ctor。
 
-然后，调用mys.push_back()时，用的是rvalue reference调用，这时，mys还必须copy ctor生成一个MyClass对象，放入自己的container里。
+然后，调用mys.push_back()时，用的是lvalue reference调用（因为v此时，是一个xvalue），这时，mys还必须copy ctor生成一个MyClass对象，放入自己的container里。和上面那个代码没有什么不同。
+
+如果我们想针对vector.push_back()用到一个真正的temporary对象，代码示范如何写，如下：
+```
+int main() 
+{
+    std::vector<MyClass> mys;
+    mys.push_back(MyClass());
+
+    return 0;
+}
+```
+执行结果是：
+```
+MyClass default ctor
+MyClass move ctor
+```
+这时，std::vector::push_back()，调用的是rvalue reference，因为MyClass()此时是prvalue。
 
 ## 下面权当练习
 ```
@@ -397,3 +414,7 @@ MyClass default ctor
 MyClass copy ctor
 ```
 大家可以想想为什么。
+
+## 结论
+
+C++的对象机制相当复杂，想理顺到底有多少个对象生成，并不容易，但至少你可以完全通过代码控制实现所有的可能性，这也是C++的思想，给你所有工具，让你自由犯错(或成功)。
