@@ -1,4 +1,4 @@
-# 我们看一下到底产生了多少个MyClass Objects
+# 到底产生了多少个MyClass Objects
 
 ## MyClass
 
@@ -198,7 +198,7 @@ int main()
 MyClass default ctor
 ```
 
-只有一个对象产生。
+只有一个对象产生，即那个MyClass()生成的prvalue（temporary object），然后被v这个const reference对象指着。
 
 ## reference of rvalue
 
@@ -222,7 +222,25 @@ int main()
 ```
 MyClass default ctor
 ```
-只生成一个MyClass对象
+只生成一个MyClass对象，和上面那个“修正上面的错误”类似。
+
+那这两种情况究竟有什么不同呢？可以参考下面的代码
+
+```
+void foo(const MyClass& v) 
+{
+  MyClass another(v);
+}
+
+vs
+
+void foo(MyClass&& v)
+{
+  MyClass another(std::forward<MyClass>(v));
+}
+```
+
+你会发现，当创建another对象时，对于foo(const MyClass& v)，是调用了copy ctor，而对于foo(MyClass&& v)，是调用了move ctor。
 
 ## reference to rvalue -- continue
 
