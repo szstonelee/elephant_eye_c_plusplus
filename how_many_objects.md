@@ -98,7 +98,7 @@ MyClass default ctor
 MyClass copy ctor
 ```
 
-我们知道，函数调用，其argument是pass by value，所以，两个MyClass对象，一个在main()里，一个在foo()上，分别通过default和copy构造方法ctor创建出来的。
+我们知道，函数调用，其argument是pass by value，所以，两个MyClass对象，一个在main()里的a，一个在foo()上的v，分别通过default和copy构造方法ctor创建出来的。
 
 ## 函数传入引用 
 ```
