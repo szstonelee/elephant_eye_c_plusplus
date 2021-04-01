@@ -64,7 +64,11 @@ MyClass default ctor
 
 和上面稍微不同的是，对象MyClass在heap上，storage duration是dynamic，所以需要通过删除delete堆栈上的另外一个对象b，b是一个指针对象，来达到回收内存资源。
 
-当然，如果编译器优化，可以将b存储在register上，但依然是dynamic storage duration。
+当然，如果编译器优化，可以将b存储在register上，但MyClass依然是dynamic storage duration，必须我们人工干预删除，否则会有内存泄漏。
+
+为了避免内存泄漏，我们可以用smart pointer，即让一个智能对象，自己作为auto storage duration，同时智能对象里面的memer data放着这个指向dynamic MyClass的指针（相当于做了一层包裹wrap），然后智能对象的destructor method里，i.e., dtor，再去delete这个dynamic对象，从而保证内存不泄漏。
+
+这是因为：一个stack frame销毁时，C++会保证里面所有的auto storage duration objects，都会调用dtor。
 
 ## 加入函数
 
