@@ -122,7 +122,7 @@ int main()
 MyClass default ctor
 ```
 
-只有一次MyClass对象生成，那么函数foo()里的argument，同样是一个pass by value，不过值是reference，而referece其机理和底层仍旧是一个指针（当不允许nullptr，同时不允许改变，好像const一样），指向某个对象，这次，指向的是mai() stack frame上的对象a。所以，只有一个default ctor。
+只有一次MyClass对象生成，那么函数foo()里的argument，同样是一个pass by value，不过值是reference，而referece其机理和底层仍旧是一个指针（但不允许nullptr，同时reference变量自己，不允许改变，是个const，注意：const是限制reference自己本身，而不是限制其所指向的MyClass这个对象，你可以将reference看成一个类指针的对象，其所指的才是MyClass对象），指向某个对象，这次，指向的是main() stack frame上的对象a。所以，只有一个default ctor。
 
 ## rvalue对象作为argument
 
