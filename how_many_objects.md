@@ -424,3 +424,5 @@ MyClass copy ctor
 ## 结论
 
 C++的对象机制相当复杂，理顺到底有多少个对象生成，并不容易，但至少你可以完全通过代码控制实现所有的可能性，这也是C++的哲学，给你所有工具，让你自由犯错(或成功)。
+
+ "The committee shall make no rule that prevents C++ programmers from shooting themselves in the foot." 
