@@ -2,7 +2,9 @@
 
 引子：知乎上看到一个帖子[“C++关于虚继承的问题,为什么是这样的?”](https://www.zhihu.com/question/453103568)
 
-[先看一下参考](https://isocpp.org/wiki/faq/multiple-inheritance#virtual-inheritance-where)
+[先看一下网上对virtual inheritance的参考说明](https://isocpp.org/wiki/faq/multiple-inheritance#virtual-inheritance-where)
+
+然后看下面的实验代码
 
 ## 不用Virtual Inheritance的代码范例
 
@@ -58,7 +60,7 @@ B2 ctor = 20
 C ctor = 333
 ```
 
-可以看出，在创建C里，有两个A，一个A是创建B1时同时创建的，所以```A ctor = 1```，另外一个A是创建B2时同时创建的。
+可以看出，在创建C里，有两个A，一个A是创建B1时同时创建的，所以```A ctor = 1```，另外一个A是创建B2时同时创建的，所以还有```A ctor = 2```
 
 这就带来一个问题，假设A里有一个virtual方法，叫foo()，那么C.foo()时，该调用哪一个，这就是Diamond问题
 
