@@ -31,7 +31,7 @@ We need to know some basic numbers:
 5. For atomic primitive, if write, latency is around 20 nano seconds.
 6. CAS uses atomic primitive for write, so latency of CAS is around 20 nano seconds.
 7. For mutex, if no contention, i.e. we use [futex](https://en.wikipedia.org/wiki/Futex), latency is around 20 nano seconds. You can guess, futex is based on atomic primitive.
-8. For mutex, if contention, i.e., [thread context switch](https://en.wikipedia.org/wiki/Context_switch) happens, avarage overhead is a couple of micro seconds which is huge if you compare the above numbers.
+8. For mutex, if contention, i.e., [thread context switch](https://en.wikipedia.org/wiki/Context_switch) happens, avarage overhead is a couple of micro seconds which is huge if you compare the above numbers. And Linux scheduling a thread takes hurndres of micro seconds. 
 
 So, if we use mutex and have no contention, for lock acquiring, it is the same in cost if comparing to one CAS. But after that, it is totally differnet. Lock-free algorithms keep using CAS for each step. But when code enter [critcal section](https://en.wikipedia.org/wiki/Critical_section), it can use L1 cache or even CPU registers.
 
