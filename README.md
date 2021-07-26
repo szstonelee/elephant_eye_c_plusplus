@@ -25,3 +25,5 @@
 [到底有多少个Object生成呢？](how_many_objects.md)
 
 [virtual inheritance](virtual_inheritance.md)
+
+[一个Lock-Free双向链表的设计方案](Lock-free-double-linked-list.pdf)
