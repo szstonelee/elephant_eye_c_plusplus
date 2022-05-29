@@ -1,4 +1,4 @@
-# 如何用Smart Pointer作为参数 -- 第一部分 -- unique pointer
+# 如何用Smart Pointer作为参数 -- unique pointer
 
 ## 参考
 
@@ -15,13 +15,20 @@
 很显然，有如下几种形式
 
 ```
-1. By value: callee(unique_ptr<Widget> smart_w)
-2. By non-const l-value reference: callee(unique_ptr<Widget> &smart_w)
-3. By const l-value reference: callee(const unique_ptr<Widget> &smart_w)
-4. By r-value reference: callee(unique_ptr<Widget> &&smart_w)
+1. By value
+  callee(unique_ptr<Widget> smart_w)
+
+2. By non-const l-value reference
+  callee(unique_ptr<Widget> &smart_w)
+
+3. By const l-value reference
+  callee(const unique_ptr<Widget> &smart_w)
+
+4. By r-value reference
+  callee(unique_ptr<Widget> &&smart_w)
 ```
 
-注意：如果我们不用smart pointer，我们还有下面几种调用Widget的方式，和smart pointer相对，我们对下面的调用，统称之为raw pointer
+注意：如果我们不用smart pointer，还有下面几种调用Widget的方式，和smart pointer相对应，对下面的调用，统称之为raw pointer
 ```
 callee(Widget *w)
 callee(Widget &w)
@@ -35,17 +42,17 @@ callee(const Widget &w)
 
 加不加const，主要是w这个raw pointer可否修改其内部数据，i.e., 只允许w调用其只读的方法 read-only methods。
 
-下面的范例中，为了简单，如果用raw pointer，我们只表达为```Widget *w```，但你应该理解，它可能还有四种变化。
+下面的范例中，为了简单，如果用raw pointer，我们只表达为```Widget *w```，但你应该理解，它可能有四种变化。
 
 ## By value: ```callee(unique_ptr<Widget> smart_w)```
 
-### 函数调用By Value的真正意义
+### 函数调用By value的真正意义
 
 caller产生一个copy，给callee，让它使用。
 
 即从对象上看，caller有一个对象，callee也有一个对象，是两个对象，但是callee对象是从caller复制而来。
 
-caller和callee分别管理自己对象的生命周期lifetime。
+caller和callee分别管理自己对象的生命周期lifetime。callee比较简单，因为它在堆栈上，所以是自动管理的，i.e., 函数退出即销毁。
 
 但smart pointer是个特别的对象，它里面有一个内部指针，指向heap上的一个对象。即caller和callee，虽然都有一个smart pointer对象，但它们**可能**通过内部指针，指向某一个共有的对象。
 
@@ -137,7 +144,7 @@ l-value reference的意义，和raw pointer指针的意义是一样的: caller�
 
 我们知道，unique pointer并没有copy cost。所以理由1不充分。
 
-既然如此，为什么不用raw pointer。即
+既然如此，为什么不用raw pointer。即将下面的代码
 
 ```
 void caller()
@@ -152,7 +159,7 @@ void callee(const unique_ptr<Widget> &smart_w)
 }
 ```
 
-不如改成下面的代码，更清晰
+改成下面的更清晰的代码，
 
 ```
 void caller()
@@ -169,9 +176,9 @@ void callee(Widget *w)
 
 ### 资源会泄漏吗？
 
-你可能会说，unique pointer安全呀，它保证资源不会泄漏。
+你可能会说，unique pointer安全呀，我们用smart pointer就是为了保证资源不会泄漏。而raw poiinter做不到呀。。。
 
-但是，如果callee的raw pointer保证来自caller的smart pointer，它也保证资源是安全的。
+**如果callee的raw pointer保证来自caller的smart pointer，它也保证资源是安全的**。
 
 见下面的代码
 
@@ -210,21 +217,21 @@ void callee(Widget *w)
   delete w;
 }
 ```
-但是，上面的代码是坏代码，我们不应该写这样的代码。即callee拿到raw pointer，它没有理由去删除这个对象，删除对象的责任，应该是caller。
+但是，上面的代码是坏代码（就如同std::move()后又继续用对象，code review应该不通过），我们不应该写这样的代码。即callee拿到raw pointer，它没有理由去删除这个对象，删除对象的责任，应该是caller。
 
 ## By r-value reference: ```callee(unique_ptr<Widget> &&smart_w)```
 
 ### 右值应用的意义是什么？
 
-对于callee，如果参数是右值应用，我们应该在callee里拿走这个对象的资源（即Widget），同时，我们应该将参数的资源，置位空（一般是nullptr）。
+对于callee，如果参数是右值应用，我们应该在callee里拿走这个对象的资源（即Widget），同时，我们应该将参数的资源，设置为空（一般是nullptr）。
 
-如果，我们转移了资源，但没有将传入的参数的资源设置为空，那么很可能发生，同一资源被释放两次，一次在caller，一次在callee，这是非法的。
+如果，我们转移了资源，但没有将传入的参数的资源设置为空，那么很可能发生，同一资源被释放两次，一次在caller，一次在callee，这会导致程序非法。
 
 ### 对于unique pointer右值引用和上面的copy by value的对比
 
 如果是unique pointer，我们用右值引用，需要做资源转移，同时传入参数的资源设置为空，这个代码必须明写，漏写会导致非法。
 
-但如果是上面的By value，你会发现，编译器其实帮我们做了类似的事情（即implement implicitlys or automatically），即sink发生，资源自动转移。
+但如果是上面的By value，你会发现，编译器其实帮我们做了类似的事情（即implement by compiler implicitly or automatically），即保证sink发生，资源自动转移。
 
 这样一比较，我们的结论就来了：
 
@@ -234,7 +241,7 @@ void callee(Widget *w)
 
 | 名称 | 函数接口形式 | 结论 |
 | -- | -- | -- |
-| By value | ```callee(unique_ptr<Widget> smart_w)``` | 很好，很Good |
-| By non-const l-value reference | ```callee(unique_ptr<Widget> &smart_w)``` | 可以用，但实战中应该极少发生，建议你检查代码看是否真的需要 |
+| By value | ```callee(unique_ptr<Widget> smart_w)``` | 很好，很Good，sink自动发生，编译器保证 |
+| By non-const l-value reference | ```callee(unique_ptr<Widget> &smart_w)``` | 可以用，但实战中应该几乎不需要，建议你仔细检查代码 |
 | By const l-value reference | ```callee(const unique_ptr<Widget> &smart_w)``` | 用raw pointer更清晰 |
 | By r-value reference | ```callee(unique_ptr<Widget> &&smart_w)``` | 最好不用，用Copy by value替代 |
