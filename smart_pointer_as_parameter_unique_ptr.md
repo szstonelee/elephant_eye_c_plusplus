@@ -248,7 +248,7 @@ void callee(Widget *w)
 
 | 名称 | 函数接口形式 | 结论 |
 | -- | -- | -- |
-| By value | ```callee(unique_ptr<Widget> smart_w)``` | 很好，很Good，sink自动发生，编译器保证 |
+| By value | ```callee(unique_ptr<Widget> smart_w)``` | 很好，很Good，sink自动发生，编译器保证。注意：caller必须用std::move() |
 | By non-const l-value reference | ```callee(unique_ptr<Widget> &smart_w)``` | 可以用，但实战中应该几乎不需要，建议你仔细检查callee代码 |
-| By const l-value reference | ```callee(const unique_ptr<Widget> &smart_w)``` | 最好不用，用raw pointer更清晰 |
-| By r-value reference | ```callee(unique_ptr<Widget> &&smart_w)``` | 用Copy by value替代 |
+| By const l-value reference | ```callee(const unique_ptr<Widget> &smart_w)``` | 最好不用，推荐用raw pointer会更清晰。注意：不要害怕在smart pointer里用到raw pointer |
+| By r-value reference | ```callee(unique_ptr<Widget> &&smart_w)``` | 应该不用，而是用上面的Copy by value替代 |
