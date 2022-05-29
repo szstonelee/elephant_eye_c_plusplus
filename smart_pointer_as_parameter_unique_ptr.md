@@ -54,7 +54,9 @@ caller产生一个copy，给callee，让它使用。
 
 caller和callee分别管理自己对象的生命周期lifetime。callee管理起来比较简单，因为函数参数总是在其堆栈上，所以是自动管理的，i.e., 函数退出即销毁。
 
-但smart pointer是个特别的对象，它里面有一个内部指针，指向一个要用的对象（一般在heap上）。即caller和callee，虽然都有一个自己的smart pointer对象，但它们**可能**通过内部指针，指向某一个共有的真正要用到的对象。
+如果Copy by value for smart pointer，也是两个smart pointer对象，但会很特别：
+
+smart pointer是个特别的对象，它里面有一个内部指针，指向一个要用的对象（一般在heap上）。即caller和callee，虽然都有一个自己的smart pointer对象，但它们**可能**通过内部指针，指向某一个共有的真正要用到的对象。
 
 对于unique pointer，这个内部指针所指向的对象，就是实际的对象，i.e., Widget。
 
@@ -83,7 +85,7 @@ void caller()
   callee(std::move(smart_w));
 }
 ```
-我们必须加上std::move()。
+我们必须加上std::move()，why？
 
 ### 用std::move()的意义
 
@@ -102,7 +104,7 @@ void caller()
 
 可见，std::move()是个非常明示（explicit）的资源转移信号，从代码级清晰说明了其意图，是good code。
 
-这个，我们也称之为sink。即Widget这个资源，从caller()，下降到callee()里。或者说，caller里的smart_w，已经转移Widget的ownership到callee里的smart_w。
+这个，我们也称之为sink。即Widget这个资源，从caller()，下降到callee()里；或者说，caller里的smart_w，已经转移Widget的ownership到callee里的smart_w。
 
 ## By non-const l-value reference: ```callee(unique_ptr<Widget> &smart_w)```
 
@@ -114,14 +116,14 @@ l-value reference的意义，和raw pointer指针的意义是一样的: caller�
 
 当然是：```unique_ptr<Widget> smart_w```
 
-我们为什么要用reference，几个理由：
+从代价角度（不考虑smart pointer这个对象因素）,我们为什么要用reference，几个理由：
 
-1. 避免上面的copy by value，因为copy可能是个很大的动作（cost is big）。
+1. 避免上面的copy by value，因为copy可能是个很大的动作（cost is big），即callee里的第二个对象（即参数）的constrution是很消耗资源的。
 2. 我们要在callee里修改这个对象，然后callee返回后，caller可以看到这个改过的效果。
 
 ### 用在unique pointer这个对象上，又是何意义
 
-显然，我们希望callee修改唯一对象：smart_w。
+显然，我们希望callee修改唯一对象（因为没有const修饰）：smart_w。
 
 那么修改smart_w又是什么含义？正常来说，应该是换掉里面的Widget。比如：smart_w不再指向当前的Widget对象，而是另外一个Widget对象。
 
@@ -129,7 +131,7 @@ l-value reference的意义，和raw pointer指针的意义是一样的: caller�
 
 ### 实际生产应用中，上面的逻辑几乎看不到
 
-通过上面的分析，我们发现这样做的可能性不大。我们为什么要换掉一个unique pointer里指向的Widget呢？
+通过上面的分析，我们发现实践中，这样做的可能性不大。我们为什么要换掉一个unique pointer里指向的Widget呢？
 
 所以，结论：By non-const l-value reference理论上可以用，但几乎看不到这样的案例。
 
