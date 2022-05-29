@@ -42,26 +42,26 @@ callee(const Widget &w)
 
 加不加const，主要是w这个raw pointer可否修改其内部数据，i.e., 只允许w调用其只读的方法 read-only methods。
 
-下面的范例中，为了简单，如果用raw pointer，我们只表达为```Widget *w```，但你应该理解，它可能有四种变化。
+下面的范例中，为了简单，如果用到raw pointer，我只表达为```Widget *w```，但你应该理解，它可能有四种变化。
 
 ## By value: ```callee(unique_ptr<Widget> smart_w)```
 
-### 函数调用By value的真正意义
+### 函数参数By value的真正意义
 
 caller产生一个copy，给callee，让它使用。
 
 即从对象上看，caller有一个对象，callee也有一个对象，是两个对象，但是callee对象是从caller复制而来。
 
-caller和callee分别管理自己对象的生命周期lifetime。callee比较简单，因为函数参数总是在其堆栈上，所以是自动管理的，i.e., 函数退出即销毁。
+caller和callee分别管理自己对象的生命周期lifetime。callee管理起来比较简单，因为函数参数总是在其堆栈上，所以是自动管理的，i.e., 函数退出即销毁。
 
-但smart pointer是个特别的对象，它里面有一个内部指针，指向一个要用的对象（一般在heap上）。即caller和callee，虽然都有一个smart pointer对象，但它们**可能**通过内部指针，指向某一个共有的真正要用到的对象。
+但smart pointer是个特别的对象，它里面有一个内部指针，指向一个要用的对象（一般在heap上）。即caller和callee，虽然都有一个自己的smart pointer对象，但它们**可能**通过内部指针，指向某一个共有的真正要用到的对象。
 
 对于unique pointer，这个内部指针所指向的对象，就是实际的对象，i.e., Widget。
 
 对于shared pointer，这个内部指针所指向的对象，并不是实际的对象(Not Widget directly)，而是再包了一层。heap对象包了什么？一个共享计数（或者准确说：两个共享计数，但常规理解，只考虑其中的唯一strong counter）和一个真正的Widget对象指针。
 
 ### unique pointer不可以直接copy
-下面这段代码是不能编译的
+下面这段代码是不能编译通过的
 ```
 void caller()
 {
@@ -117,11 +117,11 @@ l-value reference的意义，和raw pointer指针的意义是一样的: caller�
 我们为什么要用reference，几个理由：
 
 1. 避免上面的copy by value，因为copy可能是个很大的动作（cost is big）。
-2. 我们要在callee里改这个对象，然后callee返回后，caller可以看到这个改过的效果
+2. 我们要在callee里修改这个对象，然后callee返回后，caller可以看到这个改过的效果。
 
 ### 用在unique pointer这个对象上，又是何意义
 
-显然，我们希望callee修改smart_w。
+显然，我们希望callee修改唯一对象：smart_w。
 
 那么修改smart_w又是什么含义？正常来说，应该是换掉里面的Widget。比如：smart_w不再指向当前的Widget对象，而是另外一个Widget对象。
 
@@ -139,9 +139,9 @@ l-value reference的意义，和raw pointer指针的意义是一样的: caller�
 
 见上面的分析，两个理由中的2不存在了，即callee不会修改对象。
 
-我们应该是避免copy value的cost。
+我们应该是避免理由1的copy cost。
 
-### 但cost放在unique pointer上就不对了
+### 但copy cost放在unique pointer上就不对了
 
 我们知道，unique pointer并没有copy cost。所以理由1不充分。
 
