@@ -52,13 +52,13 @@ caller产生一个copy，给callee，让它使用。
 
 即从对象上看，caller有一个对象，callee也有一个对象，是两个对象，但是callee对象是从caller复制而来。
 
-caller和callee分别管理自己对象的生命周期lifetime。callee比较简单，因为它在堆栈上，所以是自动管理的，i.e., 函数退出即销毁。
+caller和callee分别管理自己对象的生命周期lifetime。callee比较简单，因为函数参数总是在其堆栈上，所以是自动管理的，i.e., 函数退出即销毁。
 
-但smart pointer是个特别的对象，它里面有一个内部指针，指向heap上的一个对象。即caller和callee，虽然都有一个smart pointer对象，但它们**可能**通过内部指针，指向某一个共有的对象。
+但smart pointer是个特别的对象，它里面有一个内部指针，指向一个要用的对象（一般在heap上）。即caller和callee，虽然都有一个smart pointer对象，但它们**可能**通过内部指针，指向某一个共有的真正要用到的对象。
 
 对于unique pointer，这个内部指针所指向的对象，就是实际的对象，i.e., Widget。
 
-对于shared pointer，这个内部指针所指向的对象，并不是实际的对象(Not Widget)，而是再包了一层。heap对象包了什么？一个共享计数（或者准确说：两个共享计数，但常规理解，只考虑其中的唯一strong counter）和一个真正的Widget对象指针。
+对于shared pointer，这个内部指针所指向的对象，并不是实际的对象(Not Widget directly)，而是再包了一层。heap对象包了什么？一个共享计数（或者准确说：两个共享计数，但常规理解，只考虑其中的唯一strong counter）和一个真正的Widget对象指针。
 
 ### unique pointer不可以直接copy
 下面这段代码是不能编译的
@@ -83,10 +83,11 @@ void caller()
   callee(std::move(smart_w));
 }
 ```
+我们必须加上std::move()。
 
 ### 用std::move()的意义
 
-用std::move()，表示这个对象的资源（对于smart pointer，资源就是Widget）**理应**被转移走了，即当前这个对象不可以再使用。
+用std::move()，表示这个对象的资源（对于smart pointer，资源就是Widget）**理应**被转移走了，即当前这个对象（smart pointer），随后的代码，不可以再使用。
 
 下面的代码可以编译通过，但绝对是错误的写法
 ```
@@ -118,15 +119,15 @@ l-value reference的意义，和raw pointer指针的意义是一样的: caller�
 1. 避免上面的copy by value，因为copy可能是个很大的动作（cost is big）。
 2. 我们要在callee里改这个对象，然后callee返回后，caller可以看到这个改过的效果
 
-### 用在unique pointer上，又是何意义
+### 用在unique pointer这个对象上，又是何意义
 
-显然，我们希望callee改掉smart_w。
+显然，我们希望callee修改smart_w。
 
-那么改掉smart_w又是什么含义？正常来说，应该是换掉里面的Widget。比如：smart_w不再指向当前的Widget对象，而是另外一个Widget对象。
+那么修改smart_w又是什么含义？正常来说，应该是换掉里面的Widget。比如：smart_w不再指向当前的Widget对象，而是另外一个Widget对象。
 
 然后，callee返回后，caller开始使用这个smart_w，但是，里面的Widget对象，按理说，应该变了。
 
-### 实际生产环境中，上面的逻辑很少见
+### 实际生产应用中，上面的逻辑几乎看不到
 
 通过上面的分析，我们发现这样做的可能性不大。我们为什么要换掉一个unique pointer里指向的Widget呢？
 
@@ -140,11 +141,11 @@ l-value reference的意义，和raw pointer指针的意义是一样的: caller�
 
 我们应该是避免copy value的cost。
 
-### 但放在unique pointer上就不对了
+### 但cost放在unique pointer上就不对了
 
 我们知道，unique pointer并没有copy cost。所以理由1不充分。
 
-既然如此，为什么不用raw pointer。即将下面的代码
+既然如此，为什么不用raw pointer。即将下面使用const l-value reference的代码
 
 ```
 void caller()
@@ -159,7 +160,7 @@ void callee(const unique_ptr<Widget> &smart_w)
 }
 ```
 
-改成下面的更清晰的代码，
+改成下面的更清晰的用raw pointer的代码
 
 ```
 void caller()
@@ -176,7 +177,9 @@ void callee(Widget *w)
 
 ### 资源会泄漏吗？
 
-你可能会说，unique pointer安全呀，我们用smart pointer就是为了保证资源不会泄漏。而raw poiinter做不到呀。。。
+你可能会说，unique pointer安全呀，我们用smart pointer就是为了保证资源不会泄漏。而raw pointer做不到资源安全呀。。。
+
+这是个很大的误解!!!
 
 **如果callee的raw pointer保证来自caller的smart pointer，它也保证资源是安全的**。
 
@@ -190,6 +193,8 @@ void caller()
   callee1(smart_w.get());
 
   callee2(smart_w.get());
+
+  // 可以继续用smart_w，也可以随便抛出异常
 
 }   // guarantee: 当caller退出后，smart_w会销毁Widget资源，不管发生任何异常
 
@@ -212,7 +217,7 @@ void callee2(Widget *w)
 ```
 void callee(Widget *w)
 {
-  // usse w
+  // use w
 
   delete w;
 }
@@ -242,6 +247,6 @@ void callee(Widget *w)
 | 名称 | 函数接口形式 | 结论 |
 | -- | -- | -- |
 | By value | ```callee(unique_ptr<Widget> smart_w)``` | 很好，很Good，sink自动发生，编译器保证 |
-| By non-const l-value reference | ```callee(unique_ptr<Widget> &smart_w)``` | 可以用，但实战中应该几乎不需要，建议你仔细检查代码 |
-| By const l-value reference | ```callee(const unique_ptr<Widget> &smart_w)``` | 用raw pointer更清晰 |
-| By r-value reference | ```callee(unique_ptr<Widget> &&smart_w)``` | 最好不用，用Copy by value替代 |
+| By non-const l-value reference | ```callee(unique_ptr<Widget> &smart_w)``` | 可以用，但实战中应该几乎不需要，建议你仔细检查callee代码 |
+| By const l-value reference | ```callee(const unique_ptr<Widget> &smart_w)``` | 最好不用，用raw pointer更清晰 |
+| By r-value reference | ```callee(unique_ptr<Widget> &&smart_w)``` | 用Copy by value替代 |
