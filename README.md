@@ -27,3 +27,5 @@
 [virtual inheritance](virtual_inheritance.md)
 
 [一个Lock-Free双向链表的设计方案](Lock-free-double-linked-list.pdf)
+
+[如何用Smart Pointer作为参数 -- unique pointer](smart_pointer_as_parameter_unique_ptr.md)
