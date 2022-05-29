@@ -44,7 +44,7 @@ callee(const Widget &w)
 
 下面的范例中，为了简单，如果用到raw pointer，我只表达为```Widget *w```，但你应该理解，它可能有四种变化。
 
-## By value: ```callee(unique_ptr<Widget> smart_w)```
+## 1. By value: ```callee(unique_ptr<Widget> smart_w)```
 
 ### 函数参数By value的真正意义
 
@@ -106,7 +106,7 @@ void caller()
 
 这个，我们也称之为sink。即Widget这个资源，从caller()，下降到callee()里；或者说，caller里的smart_w，已经转移Widget的ownership到callee里的smart_w。
 
-## By non-const l-value reference: ```callee(unique_ptr<Widget> &smart_w)```
+## 2. By non-const l-value reference: ```callee(unique_ptr<Widget> &smart_w)```
 
 ### l-value reference的意义
 
@@ -135,7 +135,7 @@ l-value reference的意义，和raw pointer指针的意义是一样的: caller�
 
 所以，结论：By non-const l-value reference理论上可以用，但几乎看不到这样的案例。
 
-## By const l-value reference: ```callee(const unique_ptr<Widget> &smart_w)```
+## 3. By const l-value reference: ```callee(const unique_ptr<Widget> &smart_w)```
 
 ### const l-value reference的意义
 
@@ -226,7 +226,7 @@ void callee(Widget *w)
 ```
 但是，上面的代码是坏代码（就如同std::move()后又继续用对象，code review应该不通过），我们不应该写这样的代码。即callee拿到raw pointer，它没有理由去删除这个对象，删除对象的责任，应该是caller。
 
-## By r-value reference: ```callee(unique_ptr<Widget> &&smart_w)```
+## 4. By r-value reference: ```callee(unique_ptr<Widget> &&smart_w)```
 
 ### 右值应用的意义是什么？
 
