@@ -244,7 +244,7 @@ void callee(Widget *w)
 
 对于unique pointer，最好不要用 By r-value reference，而是用Copy by value。
 
-## 综合结论
+## unique pointer作为函数参数的综合结论表
 
 | 名称 | 函数接口形式 | 结论 |
 | -- | -- | -- |
