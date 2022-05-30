@@ -284,7 +284,7 @@ void callee(Widget *w)
 
 这样一比较，我们的结论就来了：
 
-对于unique pointer，最好不要用 By r-value reference，而是用Copy by value。
+>对于unique pointer，最好不要用 By r-value reference，而是用Copy by value替代。
 
 ## unique pointer作为函数参数的综合结论表
 
