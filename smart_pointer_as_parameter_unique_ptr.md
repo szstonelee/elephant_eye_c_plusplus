@@ -54,9 +54,9 @@ caller产生一个copy，给callee，让它使用。
 
 caller和callee分别管理自己对象的生命周期lifetime。callee管理起来比较简单，因为函数参数总是在其堆栈上，所以是自动管理的，i.e., 函数退出即销毁。
 
-如果Copy by value for smart pointer，也是两个smart pointer对象，但会很特别：
+如果Copy by value for smart pointer，也是两个对象，即两个smart pointer对象，但smart pointer会很特别：
 
-smart pointer是个特别的对象，它里面有一个内部指针，指向一个要用的对象（一般在heap上）。即caller和callee，虽然都有一个自己的smart pointer对象，但它们**可能**通过内部指针，指向某一个共有的真正要用到的对象。
+smart pointer里面有一个内部指针，指向一个要用的对象（一般在heap上）。即caller和callee，虽然都有一个自己的smart pointer对象，但它们**可能**通过内部指针，指向某一个共有的真正要用到的对象。
 
 对于unique pointer，这个内部指针所指向的对象，就是实际的对象，i.e., Widget。
 
