@@ -106,6 +106,10 @@ void caller()
 
 这个，我们也称之为sink。即Widget这个资源，从caller()，下降到callee()里；或者说，caller里的smart_w，已经转移Widget的ownership到callee里的smart_w。
 
+### 特别变种
+
+```callee(const unique_ptr<Widget> smart_w)```是一个特别变种，本质和```unique_ptr<Widget> smart_w```差别不大，只是callee()申明（或者说进一步限定），在callee()里，只做read-only动作。
+
 ## 2. By non-const l-value reference: ```callee(unique_ptr<Widget> &smart_w)```
 
 ### l-value reference的意义
