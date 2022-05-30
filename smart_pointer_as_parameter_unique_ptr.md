@@ -130,14 +130,14 @@ l-value reference的意义，和raw pointer指针的意义是一样的: caller�
 
 从代码角度（不仅是smart pointer，而是任何的l-value reference）,我们为什么要用reference，几个理由：
 
-1. 避免上面的copy by value，因为copy可能是个很大的动作（cost is big），即callee里的第二个对象（即参数）的constrution是很消耗资源的。
-2. 我们应该在callee里修改这个对象，然后callee返回后，caller可以看到这个改过的效果。
+1. 避免上面的copy by value，因为copy可能是个很大的动作（cost is big），即callee()里的第二个对象（即参数）的建造constrution是很消耗资源的。
+2. 我们应该在callee()里修改这个对象，然后callee返回后，caller()可以看到这个改过的效果。
 
-注：当然，在callee()里，程序员有权可以不修改这个对象，如果是绝对不修改，我们不应该用non const，我们需要加上const（可以参考下面的By const l-value reference）。不管如何，这里既然没有加上const，也就是说：我们在callee()有意向要修改，至少有一行修改的代码，即使它在if等conditional语句下。
+注：当然，在callee()里，程序员有权可以不修改这个对象，如果是绝对不修改，我们不应该用non const，我们需要加上const（可以参考下面的By const l-value reference）。不管如何，这里既然没有加上const，也就是说：我们在callee()有意向要修改，至少有一行修改的代码，即使它可能出现在if等conditional语句下。
 
 ### 用在unique pointer这个对象上，又是何意义
 
-显然，我们希望callee修改唯一对象（因为没有const修饰）：smart_w。
+显然，我们希望callee()里，修改唯一对象（因为没有const修饰）：即smart_w。
 
 那么修改smart_w又是什么含义？正常来说，应该是换掉里面的Widget（因为unique ptr内容就一个指针，指向Widget）。比如：smart_w不再指向当前的Widget对象，而是另外一个Widget对象（或者清空为nullptr也可以，anyway，我们必须修改之）。
 
@@ -202,7 +202,7 @@ void callee(Widget *w)
 }
 ```
 
-### 资源会泄漏吗？
+### 用raw pointer资源会泄漏吗？
 
 你可能会说，unique pointer安全呀，我们用smart pointer就是为了保证资源不会泄漏。而raw pointer做不到资源安全呀。。。
 
