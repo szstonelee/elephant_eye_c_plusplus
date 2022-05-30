@@ -147,7 +147,7 @@ l-value reference的意义，和raw pointer指针的意义是一样的: caller�
 
 通过上面的分析，我们发现实践中，这样做的可能性不大。我们为什么要换掉一个unique pointer里指向的Widget呢？
 
-所以，结论：By non-const l-value reference理论上可以用，但几乎看不到这样的实际案例。如果我是code viewer，如果有程序员这样用了l-value referecne for 
+所以，结论：By non-const l-value reference理论上可以用，但几乎看不到这样的实际案例。如果我是code viewer，如果有程序员这样用了l-value reference for 
 unique ptr，第一时间，我会怀疑他/她用错了，然后仔细检查callee()的逻辑代码。
 
 ### 贤者的总结
