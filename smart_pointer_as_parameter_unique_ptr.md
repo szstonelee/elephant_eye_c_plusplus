@@ -110,6 +110,8 @@ void caller()
 
 ```callee(const unique_ptr<Widget> smart_w)```是一个特别变种，本质和```unique_ptr<Widget> smart_w```差别不大，只是callee()申明smart_w不会变（但仍可以调用里面Widget的write动作）。类似```foo(int *p)```和```foo(int * const p)```的道理（注意：不是```foo(const int *p)```）。
 
+我的个人建议：对于copy by value for unique pointer，不需要加上const，代码看的脑袋都疼。
+
 ### 贤者的总结
 
 Herb Suttter总结的很好：
