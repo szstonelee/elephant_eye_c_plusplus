@@ -108,7 +108,7 @@ void caller()
 
 ### 特别变种
 
-```callee(const unique_ptr<Widget> smart_w)```是一个特别变种，本质和```unique_ptr<Widget> smart_w```差别不大，只是callee()申明smart_w不会变（但仍可以调用里面Widget的write动作）。类似```foo(int i)```和```foo(const int i)```的道理。
+```callee(const unique_ptr<Widget> smart_w)```是一个特别变种，本质和```unique_ptr<Widget> smart_w```差别不大，只是callee()申明smart_w不会变（但仍可以调用里面Widget的write动作）。类似```foo(int *p)```和```foo(int * const p)```的道理。
 
 ### 贤者的总结
 
