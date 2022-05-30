@@ -58,7 +58,7 @@ caller和callee分别管理自己对象的生命周期lifetime。callee管理起
 
 smart pointer里面有一个内部指针，指向一个要用的对象（一般在heap上）。即caller和callee，虽然都有一个自己的smart pointer对象，但它们**可能**通过内部指针，指向某一个共有的真正要用到的对象。
 
-对于unique pointer，这个内部指针所指向的对象，就是实际的对象，i.e., Widget。
+对于unique pointer，这个内部指针所指向的对象，就是实际的Widget对象，i.e., Widget directly.
 
 对于shared pointer，这个内部指针所指向的对象，并不是实际的对象(Not Widget directly)，而是再包了一层。heap对象包了什么？一个共享计数（或者准确说：两个共享计数，但常规理解，只考虑其中的唯一strong counter）和一个真正的Widget对象指针。
 
