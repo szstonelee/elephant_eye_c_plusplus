@@ -238,6 +238,11 @@ void callee(Widget *w)
 ><br>
 >Prefer passing objects by value, *, or &, not by smart pointer.
 
+所以，By const l-value reference for unique pointer和上面的话相悖，因为
+
+1. 我们即不会share它，因为它是unique pointer
+2. 我们也不会transfer它（i.e., sink），因为用了const做了限定
+
 ## 4. By r-value reference: ```callee(unique_ptr<Widget> &&smart_w)```
 
 ### 右值应用的意义是什么？
