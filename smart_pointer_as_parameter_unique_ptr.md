@@ -236,7 +236,7 @@ void callee2(Widget *w)
 }
 ```
 
-结论：对于unique pointer，理论上，我们可以用const l-value reference，但是，用raw pointer代码更清晰，而且，没有任何资源泄漏的问题。即smart pointeer还是起到了它应该起到的作用。
+结论：对于unique pointer，理论上，我们可以用const l-value reference，但是，用raw pointer代码更清晰，而且，没有任何资源泄漏的问题。即smart pointer还是起到了它应该起到的作用。
 
 你可能会说，万一callee里删除了w，不是会有问题。
 
