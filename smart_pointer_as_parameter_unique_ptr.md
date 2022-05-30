@@ -232,10 +232,10 @@ void callee(Widget *w)
 
 重新引述一下Herb Sutter的话
 
->Don’t pass a smart pointer as a function parameter 
->unless you want to use or manipulate the smart pointer itself, 
->such as to share or transfer ownership.
->
+>Don’t pass a smart pointer as a function parameter<br> 
+>unless you want to use or manipulate the smart pointer itself,<br> 
+>such as to share or transfer ownership.<br>
+><br>
 >Prefer passing objects by value, *, or &, not by smart pointer.
 
 ## 4. By r-value reference: ```callee(unique_ptr<Widget> &&smart_w)```
