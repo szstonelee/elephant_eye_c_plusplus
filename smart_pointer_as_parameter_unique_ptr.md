@@ -116,7 +116,7 @@ l-value reference的意义，和raw pointer指针的意义是一样的: caller�
 
 当然是：```unique_ptr<Widget> smart_w```
 
-从代价角度（不考虑smart pointer这个对象因素）,我们为什么要用reference，几个理由：
+从代码角度（不仅是smart pointer，而是任何的l-value reference）,我们为什么要用reference，几个理由：
 
 1. 避免上面的copy by value，因为copy可能是个很大的动作（cost is big），即callee里的第二个对象（即参数）的constrution是很消耗资源的。
 2. 我们应该在callee里修改这个对象，然后callee返回后，caller可以看到这个改过的效果。
