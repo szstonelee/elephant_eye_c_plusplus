@@ -110,7 +110,7 @@ void caller()
 
 ```callee(const unique_ptr<Widget> smart_w)```是一个特别变种，本质和```unique_ptr<Widget> smart_w```差别不大，只是callee()申明smart_w不会变（但仍可以调用里面Widget的write动作）。类似```foo(int *p)```和```foo(int * const p)```的道理（注意：不是```foo(const int *p)```）。
 
-我的个人建议：对于copy by value for unique pointer，不需要加上const，代码看的脑袋都疼。
+我的个人建议：对于copy by value for unique pointer，不需要加上const，这么多不重要的修饰，代码看的脑袋都疼。
 
 ### 贤者的总结
 
@@ -128,9 +128,9 @@ l-value reference的意义，和raw pointer指针的意义是一样的: caller�
 
 当然是：```unique_ptr<Widget> smart_w```
 
-从代码角度（不仅是smart pointer，而是任何的l-value reference）,我们为什么要用reference，几个理由：
+从代码角度（不仅是针对smart pointer，而是普世意义的l-value reference），我们为什么要用reference，几个理由：
 
-1. 避免上面的copy by value，因为copy可能是个很大的动作（cost is big），即callee()里的第二个对象（即参数）的建造constrution是很消耗资源的。
+1. 避免上面的copy by value，因为copy可能是个很大的动作（cost is big），即callee()里的第二个对象（即参数）的建造constrution是很消耗资源的（CPU时间或大的内存分配）。
 2. 我们应该在callee()里修改这个对象，然后callee返回后，caller()可以看到这个改过的效果。
 
 注：当然，在callee()里，程序员有权可以不修改这个对象，如果是绝对不修改，我们不应该用non const，我们需要加上const（可以参考下面的By const l-value reference）。不管如何，这里既然没有加上const，也就是说：我们在callee()有意向要修改，至少有一行修改的代码，即使它可能出现在if等conditional语句下。
@@ -141,7 +141,7 @@ l-value reference的意义，和raw pointer指针的意义是一样的: caller�
 
 那么修改smart_w又是什么含义？正常来说，应该是换掉里面的Widget（因为unique ptr内容就一个指针，指向Widget）。比如：smart_w不再指向当前的Widget对象，而是另外一个Widget对象（或者清空为nullptr也可以，anyway，我们必须修改之）。
 
-然后，callee返回后，caller开始使用这个smart_w，但是，里面的Widget对象，按理说，应该变了。
+然后，callee返回后，caller可以继续使用这个smart_w，但是，里面的Widget对象，按理说，应该变了。
 
 ### 实际生产应用中，上面的逻辑几乎看不到
 
@@ -164,7 +164,7 @@ Herb Sutter的总结是：
 
 ### const l-value reference的意义
 
-见上面的分析，两个理由中的2不存在了，即callee不会修改对象。
+见上面的分析，两个理由中的2不存在了，即callee不会修改smart_w这个对象。
 
 我们应该是避免理由1的copy cost。
 
@@ -278,7 +278,7 @@ void callee(Widget *w)
 
 当然，callee()里面可以不做这些动作（C++程序员的上帝自由），但占在caller()角度，这非常让人疑惑，callee你到底是拿，还是不拿？或者说，为了调用callee()，caller必须用std::move()，callee你就算不拿，caller也不敢继续用了。
 
-如果，我们转移了资源，但没有将传入的参数的资源设置为空，那么很可能发生，同一资源被释放两次，一次在caller，一次在callee，这会导致程序非法。
+如果，在callee()里，我们转移了资源，但没有将传入的参数的资源设置为空，那么很可能发生，同一资源被释放两次，一次在caller，一次在callee，这会导致程序非法。
 
 ### 对于unique pointer右值引用和上面的By value的对比
 
