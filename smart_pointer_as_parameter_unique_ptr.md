@@ -276,6 +276,8 @@ void callee(Widget *w)
 
 对于callee，如果参数是右值应用，我们应该在callee里拿走这个对象的资源（即Widget），同时，我们应该将参数的资源，设置为空（一般是nullptr）。
 
+当然，callee()里面可以不做这些动作（C++程序员的上帝自由），但占在caller()角度，这非常让人疑惑，callee你到底是拿，还是不拿？或者说，为了调用callee()，caller必须用std::move()，callee你就算不拿，caller也不敢继续用了。
+
 如果，我们转移了资源，但没有将传入的参数的资源设置为空，那么很可能发生，同一资源被释放两次，一次在caller，一次在callee，这会导致程序非法。
 
 ### 对于unique pointer右值引用和上面的copy by value的对比
