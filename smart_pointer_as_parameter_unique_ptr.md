@@ -110,6 +110,12 @@ void caller()
 
 ```callee(const unique_ptr<Widget> smart_w)```是一个特别变种，本质和```unique_ptr<Widget> smart_w```差别不大，只是callee()申明（或者说进一步限定），在callee()里，只做read-only动作。
 
+### 贤者的总结
+
+Herb Suttter总结的很好：
+
+>Express a “sink” function using a by-value unique_ptr parameter.
+
 ## 2. By non-const l-value reference: ```callee(unique_ptr<Widget> &smart_w)```
 
 ### l-value reference的意义
@@ -139,7 +145,18 @@ l-value reference的意义，和raw pointer指针的意义是一样的: caller�
 
 通过上面的分析，我们发现实践中，这样做的可能性不大。我们为什么要换掉一个unique pointer里指向的Widget呢？
 
-所以，结论：By non-const l-value reference理论上可以用，但几乎看不到这样的实际案例。如果我是code viewer，如果有程序员这样用了l-value referecne for unique ptr，第一时间，我会怀疑他/她用错了，然后仔细检查callee()的逻辑代码。
+所以，结论：By non-const l-value reference理论上可以用，但几乎看不到这样的实际案例。如果我是code viewer，如果有程序员这样用了l-value referecne for 
+unique ptr，第一时间，我会怀疑他/她用错了，然后仔细检查callee()的逻辑代码。
+
+### 贤者的总结
+
+Herb Sutter的总结是：
+
+>Use a non-const unique_ptr& parameter only to modify the unique_ptr.
+
+我根据另外一篇文章，补上一个小点：
+
+>It is rare. Check the code if there it is.
 
 ## 3. By const l-value reference: ```callee(const unique_ptr<Widget> &smart_w)```
 
@@ -247,7 +264,7 @@ void callee(Widget *w)
 1. 我们即不会share它，因为它是unique pointer
 2. 我们也不会transfer它（i.e., sink），因为用了const做了限定
 
-注意：这点上，参考里面的两个文章是有抵触的，但我认同Herb Sutter的话：
+注意：这点上，参考里面的两个文章是有抵触的，但我偏向Herb Sutter的话：
 
 >Don’t use a const unique_ptr& as a parameter; use widget* instead.
 
