@@ -247,6 +247,10 @@ void callee(Widget *w)
 1. 我们即不会share它，因为它是unique pointer
 2. 我们也不会transfer它（i.e., sink），因为用了const做了限定
 
+注意：这点上，参考里面的两个文章是有抵触的，但我认同Herb Sutter的话：
+
+>Don’t use a const unique_ptr& as a parameter; use widget* instead.
+
 ## 4. By r-value reference: ```callee(unique_ptr<Widget> &&smart_w)```
 
 ### 右值应用的意义是什么？
