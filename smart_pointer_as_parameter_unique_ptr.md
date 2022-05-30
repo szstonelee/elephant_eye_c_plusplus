@@ -282,7 +282,7 @@ void callee(Widget *w)
 
 ### 对于unique pointer右值引用和上面的By value的对比
 
-如果是unique pointer，我们用右值引用，需要做资源转移，同时传入参数的资源设置为空，这个代码必须明写，漏写会导致非法。
+如果是unique pointer，我们用右值引用，需要做资源转移，同时传入参数的资源设置为空，这个代码必须明写，错写会导致非法。
 
 但如果是上面的By value，你会发现，编译器其实帮我们做了类似的事情（即implement by compiler implicitly or automatically），即保证sink发生，资源自动转移。
 
