@@ -280,7 +280,7 @@ void callee(Widget *w)
 
 如果，我们转移了资源，但没有将传入的参数的资源设置为空，那么很可能发生，同一资源被释放两次，一次在caller，一次在callee，这会导致程序非法。
 
-### 对于unique pointer右值引用和上面的copy by value的对比
+### 对于unique pointer右值引用和上面的By value的对比
 
 如果是unique pointer，我们用右值引用，需要做资源转移，同时传入参数的资源设置为空，这个代码必须明写，漏写会导致非法。
 
