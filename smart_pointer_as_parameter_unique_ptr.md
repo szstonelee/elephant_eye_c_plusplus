@@ -119,13 +119,15 @@ l-value reference的意义，和raw pointer指针的意义是一样的: caller�
 从代价角度（不考虑smart pointer这个对象因素）,我们为什么要用reference，几个理由：
 
 1. 避免上面的copy by value，因为copy可能是个很大的动作（cost is big），即callee里的第二个对象（即参数）的constrution是很消耗资源的。
-2. 我们要在callee里修改这个对象，然后callee返回后，caller可以看到这个改过的效果。
+2. 我们应该在callee里修改这个对象，然后callee返回后，caller可以看到这个改过的效果。
+
+注：当然，在callee()里，程序员有权可以不修改这个对象，如果是绝对不修改，我们不应该用non const，我们需要加上const（可以参考下面的By const l-value reference）。不管如何，这里既然没有加上const，也就是说：我们在callee()有意向要修改，至少有一行修改的代码，即使它在if等conditional语句下。
 
 ### 用在unique pointer这个对象上，又是何意义
 
 显然，我们希望callee修改唯一对象（因为没有const修饰）：smart_w。
 
-那么修改smart_w又是什么含义？正常来说，应该是换掉里面的Widget。比如：smart_w不再指向当前的Widget对象，而是另外一个Widget对象。
+那么修改smart_w又是什么含义？正常来说，应该是换掉里面的Widget（因为unique ptr内容就一个指针，指向Widget）。比如：smart_w不再指向当前的Widget对象，而是另外一个Widget对象（或者清空为nullptr也可以，anyway，我们必须修改之）。
 
 然后，callee返回后，caller开始使用这个smart_w，但是，里面的Widget对象，按理说，应该变了。
 
@@ -133,7 +135,7 @@ l-value reference的意义，和raw pointer指针的意义是一样的: caller�
 
 通过上面的分析，我们发现实践中，这样做的可能性不大。我们为什么要换掉一个unique pointer里指向的Widget呢？
 
-所以，结论：By non-const l-value reference理论上可以用，但几乎看不到这样的案例。
+所以，结论：By non-const l-value reference理论上可以用，但几乎看不到这样的实际案例。如果我是code viewer，如果有程序员这样用了l-value referecne for unique ptr，第一时间，我会怀疑他/她用错了，然后仔细检查callee()的逻辑代码。
 
 ## 3. By const l-value reference: ```callee(const unique_ptr<Widget> &smart_w)```
 
@@ -225,6 +227,17 @@ void callee(Widget *w)
 }
 ```
 但是，上面的代码是坏代码（就如同std::move()后又继续用对象，code review应该不通过），我们不应该写这样的代码。即callee拿到raw pointer，它没有理由去删除这个对象，删除对象的责任，应该是caller。
+
+### 记住贤者的话
+
+重新引述一下Herb Sutter的话
+```
+Guideline: Don’t pass a smart pointer as a function parameter 
+unless you want to use or manipulate the smart pointer itself, 
+such as to share or transfer ownership.
+
+Guideline: Prefer passing objects by value, *, or &, not by smart pointer.
+```
 
 ## 4. By r-value reference: ```callee(unique_ptr<Widget> &&smart_w)```
 
