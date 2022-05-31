@@ -282,13 +282,23 @@ void callee(Widget *w)
 
 ### 对于unique pointer右值引用和上面的By value的对比
 
-如果是unique pointer，我们用右值引用，需要做资源转移，同时传入参数的资源设置为空，这个代码必须明写，错写会导致非法。
+理论上，右值引用（Universal Reference, or T&& t），有上面的麻烦。但这对于unique pointer是个不一样的故事。
 
-但如果是上面的By value，你会发现，编译器其实帮我们做了类似的事情（即implement by compiler implicitly or automatically），即保证sink发生，资源自动转移。
+unique pointer是个non-copiable object，请参考上面的By value说明，unique pointer不能直接copy，必须std::move()下才可以，即unique pointer的copy内部就是右值引用。
 
-这样一比较，我们的结论就来了：
+所以，用copy by value和右值引用，本质上，没有什么区分，用哪个都可以。
 
->对于unique pointer，最好不要用 By r-value reference，而是用Copy by value替代。
+但理论上，对于unique pointer，右值引用还是和copy by value有稍微不同，大家可以参考这个文章：
+
+[Should move-only types ever be passed by value?](http://scottmeyers.blogspot.com/2014/07/should-move-only-types-ever-be-passed.html)
+
+上面这个文章我略做总结一下：针对unique pointer，特定情况下，右值应用对于编译器而言，效率要略高于copy by value，但带来的麻烦是，代码中，我们必须不停使用perfect forwarding。
+
+并感谢网友[ltimaginea](https://www.zhihu.com/people/ltimaginea)对我之前这个问题的错误认识提供了帮助。
+
+结论：
+
+>对于unique pointer，右值引用和Copy by value几乎等效。
 
 ## unique pointer作为函数参数的综合结论表
 
@@ -297,4 +307,4 @@ void callee(Widget *w)
 | By value | ```callee(unique_ptr<Widget> smart_w)``` | 很好Good，sink自动发生，编译器保证安全。需要注意：caller必须用std::move() |
 | By non-const l-value reference | ```callee(unique_ptr<Widget> &smart_w)``` | 可以用，但实战中应该几乎不会出现，建议你仔细检查callee代码 |
 | By const l-value reference | ```callee(const unique_ptr<Widget> &smart_w)``` | 最好不用，推荐用raw pointer会更清晰。需要注意：不要害怕在smart pointer里用到raw pointer，这并不存在资源泄漏问题 |
-| By r-value reference | ```callee(unique_ptr<Widget> &&smart_w)``` | 应该不用，而是用上面的Copy by value替代 |
+| By r-value reference | ```callee(unique_ptr<Widget> &&smart_w)``` | 对于unique pointer，右值引用和Copy by value几乎等效 |
