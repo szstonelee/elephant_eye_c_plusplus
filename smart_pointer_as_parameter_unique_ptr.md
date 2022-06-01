@@ -272,9 +272,9 @@ void callee(Widget *w)
 
 ## 4. By r-value reference: ```callee(unique_ptr<Widget> &&smart_w)```
 
-### 右值应用的意义是什么？
+### 右值引用的意义是什么？
 
-对于callee，如果参数是右值应用，我们应该在callee里拿走这个对象的资源（即Widget），同时，我们应该将参数的资源，设置为空（一般是nullptr）。
+对于callee，如果参数是右值引用，我们应该在callee里拿走这个对象的资源（即Widget），同时，我们应该将参数的资源，设置为空（一般是nullptr）。
 
 当然，callee()里面可以不做这些动作（C++程序员的上帝自由），但占在caller()角度，这非常让人疑惑，callee你到底是拿，还是不拿？或者说，为了调用callee()，caller必须用std::move()，callee你就算不拿，caller也不敢继续用了。
 
@@ -292,7 +292,7 @@ unique pointer是个non-copiable object，请参考上面的By value说明，uni
 
 [Should move-only types ever be passed by value?](http://scottmeyers.blogspot.com/2014/07/should-move-only-types-ever-be-passed.html)
 
-上面这个文章我略做总结一下：针对unique pointer，特定情况下，右值应用对于编译器而言，效率要略高于copy by value，但带来的麻烦是，代码中，我们必须不停使用perfect forwarding。
+上面这个文章我略做总结一下：针对unique pointer，特定情况下，右值引用对于编译器而言，效率要略高于copy by value，但带来的麻烦是，代码中，我们必须不停使用perfect forwarding。
 
 并感谢网友[ltimaginea](https://www.zhihu.com/people/ltimaginea)对我之前这个问题的错误认识提供了帮助。
 
